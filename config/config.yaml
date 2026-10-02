@@ -1,0 +1,32 @@
+data:
+  raw_path: data/raw/paysim.csv
+  processed_path: data/processed/
+  train_end_step: 500        # time-based split: steps <= this go to train
+  target: isFraud
+
+features:
+  velocity_windows: [1, 6, 24]   # in PaySim steps (hours)
+
+model:
+  name: xgboost
+  threshold: 0.5               # tuned later on Oct 11
+  path: models/model.joblib
+
+mlflow:
+  experiment_name: fraud-detection
+  tracking_uri: mlruns
+
+api:
+  host: 127.0.0.1
+  port: 8000
+
+streaming:
+  kafka_bootstrap: localhost:9092
+  topic: transactions
+  redis_host: localhost
+  redis_port: 6379
+  send_interval_ms: 50
+
+monitoring:
+  prediction_db: predictions.db
+  drift_report_dir: reports/

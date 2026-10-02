@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Data and models (too large / not for Git)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+models/*
+!models/.gitkeep
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Logs and DBs
+*.log
+*.db
+*.sqlite
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
