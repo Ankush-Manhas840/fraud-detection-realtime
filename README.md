@@ -52,6 +52,46 @@ pip install -r requirements.txt
 
 Download the PaySim CSV and save it as `data/raw/paysim.csv`.
 
+## EDA findings
+
+Full analysis in [`notebooks/01_eda.ipynb`](notebooks/01_eda.ipynb). The data has 6,362,620 transactions over 743 steps (1 step = 1 hour, about 30 days), with 8,213 frauds.
+
+### 1. Fraud only happens in two transaction types
+
+All 8,213 frauds are `CASH_OUT` (4,116) or `TRANSFER` (4,097). There is no fraud in `PAYMENT`, `CASH_IN` or `DEBIT`. Any fair comparison between fraud and normal transactions has to use only these two types.
+
+### 2. Following the money does not work in PaySim
+
+Fraud is described as "take over an account, transfer the money to another account, then cash out". I checked whether the accounts that receive fraud transfers ever send money on:
+
+- Of 4,097 fraud transfers, only **8** receivers ever appear as a sender anywhere in the data.
+- **7** of those 8 sent money *before* they received the fraud money, so it cannot be the stolen money moving on.
+- The **1** that sent afterwards moved 18,091 out of 1,282,971 received, in a transaction not marked as fraud.
+
+**Conclusion:** PaySim does not model money moving through a chain of accounts. Features based on an account's history are not useful here, so the model has to judge each transaction from its own row.
+
+### 3. The receiver balance columns leak the answer
+
+In fraud rows the receiver's balance often does not change even though money was sent (`oldbalanceDest == newbalanceDest`):
+
+| Group | Receiver balance unchanged |
+|---|---|
+| Fraud | 49.8% |
+| All normal transactions | 36.4% |
+| Normal `CASH_OUT` and `TRANSFER` only | 0.06% |
+
+The first comparison made the pattern look weak. Normal transactions include about 2.15 million payments to merchants (names starting with `M`), whose balances are never recorded and are always 0. With those removed, the gap is hundreds of times larger.
+
+The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why: transactions detected as fraud are **cancelled**, so the balances are not updated, and the balance columns "must not be used" for fraud detection. The pattern is a result of the fraud label, not a sign that comes before it. A real-time system also cannot know the balances after a transaction before scoring it.
+
+**Decision:** the balances after the transaction (`newbalanceOrig`, `newbalanceDest`) are treated as leakage and not used as features. The balances before the transaction are known at scoring time and are checked separately before use.
+
+### Next checks
+
+- Data quality: missing values, duplicates, types, impossible values
+- Does fraud empty the account (`amount` equal to `oldbalanceOrg`)?
+- `isFlaggedFraud`: the dataset page says it flags transfers over 200,000. How many frauds does it catch?
+
 ## How to run
 
 - Train: _TODO_
@@ -69,7 +109,7 @@ Download the PaySim CSV and save it as `data/raw/paysim.csv`.
 ## Progress
 
 ### Week 1 — Data, imbalance, features
-- [ ] **Oct 2** — Scaffold repo, download PaySim `[chore: initial project scaffold]`
+- [x] **Oct 2** — Scaffold repo, download PaySim `[chore: initial project scaffold]`
 - [ ] **Oct 3** — EDA in `01_eda.ipynb` `[feat: add EDA notebook]`
 - [ ] **Oct 4** — Baseline Logistic Regression with `class_weight` `[feat: add baseline model]`
 - [ ] **Oct 5** — Metrics: precision, recall, PR-AUC, confusion matrix in `evaluate.py` `[feat: add evaluation metrics]`
