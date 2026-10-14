@@ -200,6 +200,7 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 - [ ] **Oct 27** — Move user state to Redis `[feat: redis feature state]`
 - [ ] **Oct 28** — SQLite prediction log `[feat: add prediction logging]`
 - [ ] **Oct 29** — Evidently drift report `[feat: add drift monitoring]`
+- [ ] **Added** — Dockerfile for the FastAPI app, and add the API to `docker-compose.yml` so API + Kafka + Redis start together `[feat: dockerize api]`
 ### Final
 - [ ] **Oct 30** — Streamlit dashboard `[feat: add live dashboard]`
 - [ ] **Oct 31** — Final README, architecture diagram, demo GIF, LinkedIn post `[docs: final README]`
