@@ -1,11 +1,12 @@
 data:
-  raw_path: data/raw/paysim.csv
+  raw_path: data/raw/card_transaction.v1.csv
+  nrows: 3000000             # first 3M rows = complete histories for about 252 users
   processed_path: data/processed/
-  train_end_step: 500        # time-based split: steps <= this go to train
-  target: isFraud
+  train_end_date: null       # time-based split: set after EDA (transactions before this date go to train)
+  target: is_fraud
 
 features:
-  velocity_windows: [1, 6, 24]   # in PaySim steps (hours)
+  velocity_windows: [1, 6, 24]   # hours
 
 model:
   name: xgboost

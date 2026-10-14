@@ -48,7 +48,9 @@ PaySim data → Stream producer → Kafka topic → Consumer
 | Config | YAML (`pyyaml`) |
 | Containers (local only) | Docker, Docker Compose |
 
-**Dataset:** PaySim synthetic mobile money transactions — https://www.kaggle.com/datasets/ealaxi/paysim1
+**Dataset (changed Oct 14):** IBM TabFormer synthetic credit card transactions — https://github.com/IBM/TabFormer. PaySim was dropped after EDA (senders almost never repeat, and the balance columns leak the label); see README "Why not PaySim". Sections below that mention PaySim columns are out of date and get updated as each step is reached.
+
+**Original dataset:** PaySim synthetic mobile money transactions — https://www.kaggle.com/datasets/ealaxi/paysim1
 Columns: `step, type, amount, nameOrig, oldbalanceOrg, newbalanceOrig, nameDest, oldbalanceDest, newbalanceDest, isFraud, isFlaggedFraud`. `step` = 1 hour of simulated time. `isFraud` is the label.
 
 ---
