@@ -2,6 +2,10 @@
 
 A small local version of a payment-company fraud pipeline: stream transactions, build live features, score them with a tracked model, explain and monitor every decision.
 
+<p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
+
+**Status (Oct 14):** exploring the data. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+
 ## Architecture
 
 ```

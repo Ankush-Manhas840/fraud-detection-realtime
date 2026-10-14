@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" role="img" aria-labelledby="title desc">
+  <title id="title">Real-Time Fraud Detection: project overview</title>
+  <desc id="desc">Pipeline from data to dashboard with the status of each stage, overall progress by phase, and key numbers from exploratory data analysis.</desc>
+  <style>
+    :root {
+      --bg: #fbfbfd; --card: #ffffff; --line: #e5e5ea; --ink: #1d1d1f; --ink2: #6e6e73; --ink3: #8e8e93;
+      --done: #34c759; --doing: #0a84ff; --todo: #c7c7cc; --track: #f2f2f7; --warn: #ff9f0a; --shadow: rgba(0,0,0,0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117; --card: #161b22; --line: #30363d; --ink: #f5f5f7; --ink2: #a1a1a6; --ink3: #8b949e;
+        --done: #30d158; --doing: #409cff; --todo: #484f58; --track: #21262d; --warn: #ffb340; --shadow: rgba(0,0,0,0.4);
+      }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, Helvetica, Arial, sans-serif; fill: var(--ink); }
+    .bg { fill: var(--bg); }
+    .card { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+    .h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.8px; }
+    .sub { font-size: 16px; fill: var(--ink2); }
+    .h2 { font-size: 13px; font-weight: 600; letter-spacing: 1.2px; fill: var(--ink3); }
+    .node { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+    .tool { font-size: 13px; fill: var(--ink2); }
+    .label { font-size: 15px; font-weight: 600; }
+    .pct { font-size: 15px; font-weight: 600; fill: var(--ink2); }
+    .big { font-size: 30px; font-weight: 700; letter-spacing: -1px; }
+    .small { font-size: 13px; fill: var(--ink2); }
+    .note { font-size: 14px; fill: var(--ink2); }
+    .done { fill: var(--done); } .doing { fill: var(--doing); } .todo { fill: var(--todo); } .warn { fill: var(--warn); }
+    .track { fill: var(--track); }
+    .arrow { stroke: var(--todo); stroke-width: 2; fill: none; }
+    .ring-done { stroke: var(--done); } .ring-doing { stroke: var(--doing); } .ring-todo { stroke: var(--todo); }
+  </style>
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="todo"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="820" rx="24"/>
+
+  <!-- Header -->
+  <text class="h1" x="56" y="78">Real-Time Fraud Detection</text>
+  <text class="sub" x="56" y="108">Stream card transactions, build live features per card, score each one in milliseconds, explain and monitor every decision.</text>
+
+  <!-- Legend -->
+  <g transform="translate(870,64)">
+    <circle cx="6" cy="0" r="6" class="done"/><text class="small" x="18" y="5">Done</text>
+    <circle cx="86" cy="0" r="6" class="doing"/><text class="small" x="98" y="5">In progress</text>
+    <circle cx="196" cy="0" r="6" class="todo"/><text class="small" x="208" y="5">Planned</text>
+  </g>
+
+  <!-- Pipeline -->
+  <text class="h2" x="56" y="166">HOW IT WORKS</text>
+  <g>
+    <!-- node width 164, gap 28, start 56 -->
+    <g transform="translate(56,186)">
+      <rect class="card" width="164" height="112" rx="16"/>
+      <rect class="doing" x="18" y="0" width="128" height="4" rx="2"/>
+      <text class="node" x="18" y="44">1  Data</text>
+      <text class="tool" x="18" y="70">IBM TabFormer</text>
+      <text class="tool" x="18" y="90">24.4M transactions</text>
+    </g>
+    <path class="arrow" d="M224,242 H244" marker-end="url(#head)"/>
+    <g transform="translate(248,186)">
+      <rect class="card" width="164" height="112" rx="16"/>
+      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <text class="node" x="18" y="44">2  Stream</text>
+      <text class="tool" x="18" y="70">Kafka</text>
+      <text class="tool" x="18" y="90">one purchase at a time</text>
+    </g>
+    <path class="arrow" d="M416,242 H436" marker-end="url(#head)"/>
+    <g transform="translate(440,186)">
+      <rect class="card" width="164" height="112" rx="16"/>
+      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <text class="node" x="18" y="44">3  Live features</text>
+      <text class="tool" x="18" y="70">Redis</text>
+      <text class="tool" x="18" y="90">per-card history</text>
+    </g>
+    <path class="arrow" d="M608,242 H628" marker-end="url(#head)"/>
+    <g transform="translate(632,186)">
+      <rect class="card" width="164" height="112" rx="16"/>
+      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <text class="node" x="18" y="44">4  Score</text>
+      <text class="tool" x="18" y="70">XGBoost + FastAPI</text>
+      <text class="tool" x="18" y="90">with SHAP reasons</text>
+    </g>
+    <path class="arrow" d="M800,242 H820" marker-end="url(#head)"/>
+    <g transform="translate(824,186)">
+      <rect class="card" width="164" height="112" rx="16"/>
+      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <text class="node" x="18" y="44">5  Monitor</text>
+      <text class="tool" x="18" y="70">SQLite + Evidently</text>
+      <text class="tool" x="18" y="90">drift reports</text>
+    </g>
+    <path class="arrow" d="M992,242 H1012" marker-end="url(#head)"/>
+    <g transform="translate(1016,186)">
+      <rect class="card" width="128" height="112" rx="16"/>
+      <rect class="todo" x="18" y="0" width="92" height="4" rx="2"/>
+      <text class="node" x="18" y="44">6  See</text>
+      <text class="tool" x="18" y="70">Streamlit</text>
+      <text class="tool" x="18" y="90">dashboard</text>
+    </g>
+  </g>
+
+  <!-- Progress by phase -->
+  <text class="h2" x="56" y="356">PROGRESS</text>
+  <g class="bars">
+    <!-- label column 56..300, bar 300..1060, pct at 1080 -->
+    <g transform="translate(56,378)">
+      <text class="label" x="0" y="20">Data and EDA</text>
+      <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
+      <rect class="doing" x="244" y="8" width="456" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">60%</text>
+    </g>
+    <g transform="translate(56,418)">
+      <text class="label" x="0" y="20">Models and tracking</text>
+      <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">0%</text>
+    </g>
+    <g transform="translate(56,458)">
+      <text class="label" x="0" y="20">API and tests</text>
+      <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">0%</text>
+    </g>
+    <g transform="translate(56,498)">
+      <text class="label" x="0" y="20">Streaming and Redis</text>
+      <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
+      <rect class="done" x="244" y="8" width="76" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">10%</text>
+    </g>
+    <g transform="translate(56,538)">
+      <text class="label" x="0" y="20">Monitoring and dashboard</text>
+      <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">0%</text>
+    </g>
+    <text class="note" x="300" y="596">Streaming 10%: Docker Compose for Kafka and Redis is set up, not yet used.</text>
+  </g>
+
+  <!-- Key numbers -->
+  <text class="h2" x="56" y="650">WHAT THE DATA SAYS SO FAR</text>
+  <g transform="translate(56,668)">
+    <rect class="card" width="256" height="112" rx="16"/>
+    <text class="big" x="22" y="56">24.4M</text>
+    <text class="small" x="22" y="84">transactions, 2,000 people,</text>
+    <text class="small" x="22" y="102">6,139 cards, 1991 to 2020</text>
+  </g>
+  <g transform="translate(332,668)">
+    <rect class="card" width="256" height="112" rx="16"/>
+    <text class="big" x="22" y="56">11 in 10,000</text>
+    <text class="small" x="22" y="84">transactions are fraud, so</text>
+    <text class="small" x="22" y="102">accuracy is useless here</text>
+  </g>
+  <g transform="translate(608,668)">
+    <rect class="card" width="256" height="112" rx="16"/>
+    <text class="big doing" x="22" y="56">Online</text>
+    <text class="small" x="22" y="84">fraud comes in bursts: many</text>
+    <text class="small" x="22" y="102">new shops in a short time</text>
+  </g>
+  <g transform="translate(884,668)">
+    <rect class="card" width="260" height="112" rx="16"/>
+    <text class="big warn" x="22" y="56">1 leak</text>
+    <text class="small" x="22" y="84">found in PaySim's balances,</text>
+    <text class="small" x="22" y="102">so the dataset was replaced</text>
+  </g>
+</svg>
