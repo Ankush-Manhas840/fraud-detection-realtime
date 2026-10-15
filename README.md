@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 14):** exploring the data. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 15):** EDA done; seven features chosen, the strongest being purchases abroad (about 45 times riskier) and first visits to a shop (about 28 times riskier). Next: time-based split and a first scikit-learn model. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -69,7 +69,7 @@ pip install -r requirements.txt
 
 Download the TabFormer data as described in [Dataset](#dataset) and save it as `data/raw/card_transaction.v1.csv`.
 
-## EDA findings: TabFormer (in progress)
+## EDA findings: TabFormer
 
 Analysis in [`notebooks/01b_eda_ibm.ipynb`](notebooks/01b_eda_ibm.ipynb), on the first 3,000,000 rows (about 252 people).
 
@@ -107,12 +107,32 @@ Feature ideas from this: online purchase, a shop the card has never used before,
 
 Because the simulation never blocks a stolen card, fraud comes in bursts. A random train/test split would put parts of the same burst in both sets, so the split will be by time.
 
-### Next checks
+### Which clues separate fraud from normal purchases
 
-- One column at a time: amounts, card use type, shop type (`mcc`), hour of day
-- Each feature idea above, compared fairly between fraud and normal transactions
-- Purchases outside the US
-- Zero amounts
+Each clue was compared between fraud and normal purchases. Rates are frauds per 10,000 purchases; the overall rate is about 11.
+
+| Clue | What was found | Use it? |
+|---|---|---|
+| `outside_us` (no US zip, country name in `merchant_state`) | 391 abroad against 9 at home, **about 45 times riskier**. Under 1% of purchases but about a quarter of all fraud. | Yes |
+| `new_shop` (card has never used this shop before) | 155 against 5.5, **about 28 times riskier**. 4% of purchases but over half of all fraud. | Yes |
+| `use_chip` | Online 52, chip 8, swipe 5. Online fraud only needs the card number. | Yes |
+| `mcc` (type of shop) | Jewellery 608, electronics 562, furniture 442, antiques 312: expensive goods that are easy to resell. Groceries and fuel are very low. | Yes, as a category |
+| `gap_minutes` (time since the card's previous purchase) | Middle gap about 2 hours for fraud against 8 hours for normal. A quarter of frauds come within 25 minutes. | Yes |
+| `amount` | Middle fraud purchase $70 against $30 for normal, but fraud avoids very large purchases. | Yes |
+| `hour` | Highest from 11 am to 2 pm (about 19), lowest from 8 pm to midnight (about 2). Not a night-time pattern: the simulation models fraudsters working regular hours. | Yes |
+| `year` | Jumps between 0 and 28 because fraud comes in bursts and there are few people. A model also has to work on future years. | No |
+
+`new_shop` and `gap_minutes` come from each card's own history (rows sorted by user, card and time). In the live system they are exactly what Redis will keep per card.
+
+**Not used as features:** `year`, `user`, `card`, the raw `timestamp`, and `merchant_name` (only used to build `new_shop`).
+
+### Before training
+
+- Split by time, not randomly, because fraud comes in bursts on the same card.
+- `mcc` and `use_chip` are categories and need encoding.
+- Each card's first purchase has no `gap_minutes`.
+- The dataset does not say which time zone timestamps use; training and live scoring must use the same one.
+- Judge the model with precision, recall and PR-AUC, not accuracy.
 
 ## EDA findings: PaySim (dataset dropped)
 
@@ -170,7 +190,7 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 
 ### Week 1 — Data, imbalance, features
 - [x] **Oct 2** — Scaffold repo, download PaySim `[chore: initial project scaffold]`
-- [ ] **Oct 3** — EDA in `01_eda.ipynb` `[feat: add EDA notebook]` *(in progress: PaySim done and dropped, TabFormer EDA in `01b_eda_ibm.ipynb`)*
+- [x] **Oct 3** — EDA in `01_eda.ipynb` `[feat: add EDA notebook]` *(done Oct 15: PaySim dropped, TabFormer EDA in `01b_eda_ibm.ipynb`)*
 - [ ] **Oct 4** — Baseline Logistic Regression with `class_weight` `[feat: add baseline model]`
 - [ ] **Oct 5** — Metrics: precision, recall, PR-AUC, confusion matrix in `evaluate.py` `[feat: add evaluation metrics]`
 - [ ] **Oct 6** — Time-based train/test split in `data.py` `[feat: add time-based split]`

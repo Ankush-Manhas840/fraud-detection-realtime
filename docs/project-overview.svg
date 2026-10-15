@@ -55,7 +55,7 @@
     <!-- node width 164, gap 28, start 56 -->
     <g transform="translate(56,186)">
       <rect class="card" width="164" height="112" rx="16"/>
-      <rect class="doing" x="18" y="0" width="128" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="128" height="4" rx="2"/>
       <text class="node" x="18" y="44">1  Data</text>
       <text class="tool" x="18" y="70">IBM TabFormer</text>
       <text class="tool" x="18" y="90">24.4M transactions</text>
@@ -109,8 +109,8 @@
     <g transform="translate(56,378)">
       <text class="label" x="0" y="20">Data and EDA</text>
       <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
-      <rect class="doing" x="244" y="8" width="456" height="14" rx="7"/>
-      <text class="pct" x="1024" y="21">60%</text>
+      <rect class="done" x="244" y="8" width="760" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">100%</text>
     </g>
     <g transform="translate(56,418)">
       <text class="label" x="0" y="20">Models and tracking</text>
@@ -152,9 +152,9 @@
   </g>
   <g transform="translate(608,668)">
     <rect class="card" width="256" height="112" rx="16"/>
-    <text class="big doing" x="22" y="56">Online</text>
-    <text class="small" x="22" y="84">fraud comes in bursts: many</text>
-    <text class="small" x="22" y="102">new shops in a short time</text>
+    <text class="big doing" x="22" y="56">45 times</text>
+    <text class="small" x="22" y="84">riskier when the card is used</text>
+    <text class="small" x="22" y="102">abroad; 28 times at a new shop</text>
   </g>
   <g transform="translate(884,668)">
     <rect class="card" width="260" height="112" rx="16"/>
