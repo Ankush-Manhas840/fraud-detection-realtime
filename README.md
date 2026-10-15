@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 15):** EDA done; seven features chosen, the strongest being purchases abroad (about 45 times riskier) and first visits to a shop (about 28 times riskier). Next: time-based split and a first scikit-learn model. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 15):** first model trained. Logistic regression on five features finds 150 real frauds in its top 1,000 alerts on later, unseen purchases (random finds about 1). Adding card-use type made it worse because online fraud disappeared after 2017 ([drift](#adding-a-strong-feature-made-the-model-worse)). Next: move feature steps into `src/features.py` and validate on new people. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -182,18 +182,38 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 
 ## Results
 
-| Model | PR-AUC | Precision | Recall | Threshold |
+Analysis in [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb). Split by time: train on purchases before 25 April 2017 (2.4 million rows, 2,805 frauds), validate on purchases after it (600,000 rows, 616 frauds). Random guessing scores a PR-AUC of about 0.001 and finds about 1 fraud in 1,000 alerts.
+
+All models are logistic regression with `class_weight="balanced"` in a scikit-learn pipeline (scaling for numbers, one-hot encoding for categories).
+
+| Model | Features | PR-AUC | Frauds in top 1,000 alerts | Precision / recall at top 1,000 |
 |---|---|---|---|---|
-| _TBD_ | | | | |
+| **1 (best so far)** | amount, hour, outside_us, new_shop, gap_minutes | **0.090** | **150** | 15% / 24% |
+| 2 | model 1 + use_chip + mcc | 0.075 | 142 | 14% / 23% |
+| 3 | model 1 + use_chip | 0.041 | 17 | 2% / 3% |
+
+### Adding a strong feature made the model worse
+
+`use_chip` looked strong in EDA (online about 11 times riskier than swipe), yet adding it cut the frauds in the top 1,000 alerts from 150 to 17. Comparing the two periods showed **drift**:
+
+| Fraud per 10,000 | Train (before Apr 2017) | Validation (after) |
+|---|---|---|
+| Online | 66.4 | **0.0** |
+| Chip | 2.6 | 12.5 |
+| Swipe | 4.3 | 9.7 |
+
+The model learned "online means fraud", then flooded its top alerts with about 84,000 innocent online purchases from the later period. EDA on all years together hid the change. Card use also shifted from mostly swipe (74% before 2017) to mostly chip (69% after).
+
+With only about 252 people, the missing online fraud may be chance rather than a real change. Next step: validate on a different slice of people after April 2017, which needs the feature steps moved into `src/features.py`.
 
 ## Progress
 
 ### Week 1 — Data, imbalance, features
 - [x] **Oct 2** — Scaffold repo, download PaySim `[chore: initial project scaffold]`
 - [x] **Oct 3** — EDA in `01_eda.ipynb` `[feat: add EDA notebook]` *(done Oct 15: PaySim dropped, TabFormer EDA in `01b_eda_ibm.ipynb`)*
-- [ ] **Oct 4** — Baseline Logistic Regression with `class_weight` `[feat: add baseline model]`
+- [x] **Oct 4** — Baseline Logistic Regression with `class_weight` `[feat: add baseline model]`
 - [ ] **Oct 5** — Metrics: precision, recall, PR-AUC, confusion matrix in `evaluate.py` `[feat: add evaluation metrics]`
-- [ ] **Oct 6** — Time-based train/test split in `data.py` `[feat: add time-based split]`
+- [x] **Oct 6** — Time-based train/test split (done in the notebook; moving to `data.py` next) `[feat: add time-based split]`
 - [ ] **Oct 7** — Velocity features `[feat: add velocity features]`
 - [ ] **Oct 8** — Deviation features (amount compared with the card's usual amount, new shop, new type of shop, outside the US), all in `features.py` `[feat: add deviation features]`. *Balance-error features dropped: they leaked the label in PaySim, and TabFormer has no balances.*
 ### Week 2 — Models, explainability, tracking
