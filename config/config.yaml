@@ -2,7 +2,7 @@ data:
   raw_path: data/raw/card_transaction.v1.csv
   nrows: 3000000             # first 3M rows = complete histories for about 252 users
   processed_path: data/processed/
-  train_end_date: null       # time-based split: set after EDA (transactions before this date go to train)
+  train_end_date: "2017-04-25 21:24:36"   # time-based split: set after EDA (transactions before this date go to train)
   target: is_fraud
 
 features:

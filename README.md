@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 15):** first model trained. Logistic regression on five features finds 150 real frauds in its top 1,000 alerts on later, unseen purchases (random finds about 1). Adding card-use type made it worse because online fraud disappeared after 2017 ([drift](#adding-a-strong-feature-made-the-model-worse)). Next: move feature steps into `src/features.py` and validate on new people. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 17):** baseline model tested on 253 people it never saw, in a later period: 142 real frauds in its top 1,000 alerts (random finds about 1), close to the 150 on its own people ([details](#test-on-new-people)). Data preparation now runs from `src/data.py` and `src/features.py`. Card-use type is left out because online fraud dropped sharply after 2017 in two independent groups ([drift](#adding-a-strong-feature-made-the-model-worse)). Next: a stronger model (XGBoost). The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -174,7 +174,14 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 
 ## How to run
 
-- Train: _TODO_
+- Prepare data (in Python, from the project folder):
+  ```python
+  from src.data import load_raw, clean, time_split
+  from src.features import build_features
+  df = build_features(clean(load_raw("data/raw/card_transaction.v1.csv")))      # first 3M rows
+  new = build_features(clean(load_raw("data/raw/card_transaction.v1.csv", start=3_000_000)))  # next 3M rows
+  ```
+- Train: see [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb) (script version coming in `src/train.py`)
 - Start API: _TODO_
 - Start Docker services (Kafka + Redis): `docker compose up -d`
 - Start stream: _TODO_
@@ -196,15 +203,28 @@ All models are logistic regression with `class_weight="balanced"` in a scikit-le
 
 `use_chip` looked strong in EDA (online about 11 times riskier than swipe), yet adding it cut the frauds in the top 1,000 alerts from 150 to 17. Comparing the two periods showed **drift**:
 
-| Fraud per 10,000 | Train (before Apr 2017) | Validation (after) |
+| Fraud per 10,000 | Train (before Apr 2017) | Validation (after) | New people (after) |
+|---|---|---|---|
+| Online | 66.4 | **0.0** | **1.5** |
+| Chip | 2.6 | 12.5 | 9.7 |
+| Swipe | 4.3 | 9.7 | 3.4 |
+
+The model adds up evidence, so "online" alone pushed about 84,000 innocent online purchases from the later period above real frauds and flooded the top alerts. EDA on all years together hid the change. Card use also shifted from mostly swipe (74% before 2017) to mostly chip (69% after).
+
+A second, independent group of 253 people shows the same drop (1.5 per 10,000 after 2017), so it is a real change in the data, not chance. It is the opposite of the real-world trend after the US chip rollout, where fraud moved online, so it is likely a quirk of the simulator. `use_chip` stays out of the model.
+
+### Test on new people
+
+To check that model 1 was not tuned to its 252 people, it was scored on a different slice of the file without retraining: rows 3 million to 6 million, after removing user 252 (whose history crosses the slice border), keeping only purchases after the 25 April 2017 cut-off. That is 253 new people, 599,848 purchases and 459 frauds, prepared by the same `src/data.py` and `src/features.py` functions (checked to reproduce the notebook features exactly).
+
+| | Validation (same people) | New people |
 |---|---|---|
-| Online | 66.4 | **0.0** |
-| Chip | 2.6 | 12.5 |
-| Swipe | 4.3 | 9.7 |
+| PR-AUC | 0.090 | **0.074** |
+| Frauds in top 1,000 alerts | 150 | **142** |
+| Precision / recall at top 1,000 | 15% / 24% | **14% / 31%** |
+| Random guessing, frauds in top 1,000 | about 1 | about 1 |
 
-The model learned "online means fraud", then flooded its top alerts with about 84,000 innocent online purchases from the later period. EDA on all years together hid the change. Card use also shifted from mostly swipe (74% before 2017) to mostly chip (69% after).
-
-With only about 252 people, the missing online fraud may be chance rather than a real change. Next step: validate on a different slice of people after April 2017, which needs the feature steps moved into `src/features.py`.
+A small drop is expected on unseen people; the model generalises.
 
 ## Progress
 
@@ -215,6 +235,7 @@ With only about 252 people, the missing online fraud may be chance rather than a
 - [ ] **Oct 5** — Metrics: precision, recall, PR-AUC, confusion matrix in `evaluate.py` `[feat: add evaluation metrics]`
 - [x] **Oct 6** — Time-based train/test split (done in the notebook; moving to `data.py` next) `[feat: add time-based split]`
 - [ ] **Oct 7** — Velocity features `[feat: add velocity features]`
+- [x] **Oct 17** — Feature pipeline in `src/data.py` and `src/features.py` (hour, outside_us, new_shop, gap_minutes); tested on new people
 - [ ] **Oct 8** — Deviation features (amount compared with the card's usual amount, new shop, new type of shop, outside the US), all in `features.py` `[feat: add deviation features]`. *Balance-error features dropped: they leaked the label in PaySim, and TabFormer has no balances.*
 ### Week 2 — Models, explainability, tracking
 - [ ] **Oct 9** — XGBoost with `scale_pos_weight` `[feat: add xgboost model]`

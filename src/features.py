@@ -1,25 +1,36 @@
 """ALL feature functions. Shared by training and live scoring (one code path, no skew)."""
 
 
-def add_velocity_features(df, windows):
-    """Add per-user transaction counts / amount sums over the given windows (in steps)."""
-    # TODO (Oct 7): velocity features.
-    raise NotImplementedError
+def add_hour(df):
+    """Add `hour` (0 to 23) from `timestamp`."""
+   
+    df["hour"]=df["timestamp"].dt.hour
+    return df
 
 
-def add_deviation_features(df):
-    """Add features comparing a transaction's amount to the user's usual behaviour."""
-    # TODO (Oct 8): deviation features.
-    raise NotImplementedError
+def add_outside_us(df):
+    """Add `outside_us`: 1 when there is no zip but `merchant_state` has a value (a country name)."""
+    df["outside_us"]=(df["zip"].isna()& df["merchant_state"].notna()).astype(int)
+    return df
 
 
-def add_balance_error_features(df):
-    """Add features capturing mismatches between balances and the transaction amount."""
-    # TODO (Oct 8): balance-error features.
-    raise NotImplementedError
+def add_card_history(df):
+    
+    """Sort by user, card and time, then add `new_shop` and `gap_minutes` from each card's own history."""
+    df=df.reset_index(drop=True)
+    df=df.sort_values(["user","card","timestamp"])
+    df["seen_before"]=df.duplicated(subset=["user","card","merchant_name"])
+    df["new_shop"]=(~df["seen_before"]).astype(int)
+    df["gap"]=df.groupby(["user","card",])["timestamp"].diff()
+    df["gap_minutes"]=df["gap"].dt.total_seconds()/60
+    return df
+    
 
 
 def build_features(df):
-    """Apply every feature function and return the model-ready DataFrame."""
-    # TODO (Oct 8): chain all feature functions.
-    raise NotImplementedError
+    """Apply every feature function in order and return the DataFrame."""
+    df=add_hour(df)
+    df=add_outside_us(df)
+    df=add_card_history(df)
+    return df
+    
