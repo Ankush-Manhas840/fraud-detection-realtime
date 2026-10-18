@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 17):** baseline model tested on 253 people it never saw, in a later period: 142 real frauds in its top 1,000 alerts (random finds about 1), close to the 150 on its own people ([details](#test-on-new-people)). Data preparation now runs from `src/data.py` and `src/features.py`. Card-use type is left out because online fraud dropped sharply after 2017 in two independent groups ([drift](#adding-a-strong-feature-made-the-model-worse)). Next: a stronger model (XGBoost). The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 17):** baseline model tested on 253 people it never saw, in a later period: 142 real frauds in its top 1,000 alerts (random finds about 1), close to the 150 on its own people ([details](#test-on-new-people)). Data preparation now runs from `src/data.py` and `src/features.py`. Card-use type is left out because online fraud dropped sharply after 2017 in two independent groups ([drift](#adding-a-strong-feature-made-the-model-worse)). Four per-card history features then raised it to **177** on new people; XGBoost was tried and not chosen ([why](#per-card-history-features-and-the-final-choice)). Next: serve the model with FastAPI ([learning plan](docs/api-learning-plan.html)). The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -195,7 +195,8 @@ All models are logistic regression with `class_weight="balanced"` in a scikit-le
 
 | Model | Features | PR-AUC | Frauds in top 1,000 alerts | Precision / recall at top 1,000 |
 |---|---|---|---|---|
-| **1 (best so far)** | amount, hour, outside_us, new_shop, gap_minutes | **0.090** | **150** | 15% / 24% |
+| **4 (chosen)** | model 1 + new_shop_type, count_last_hour, amount_vs_usual, share_same_hour | **0.097** | **199** | 20% / 32% |
+| 1 | amount, hour, outside_us, new_shop, gap_minutes | 0.090 | 150 | 15% / 24% |
 | 2 | model 1 + use_chip + mcc | 0.075 | 142 | 14% / 23% |
 | 3 | model 1 + use_chip | 0.041 | 17 | 2% / 3% |
 
@@ -225,6 +226,21 @@ To check that model 1 was not tuned to its 252 people, it was scored on a differ
 | Random guessing, frauds in top 1,000 | about 1 | about 1 |
 
 A small drop is expected on unseen people; the model generalises.
+
+### Per-card history features and the final choice
+
+Four more features compare each purchase with the same card's earlier purchases only (no future data): first time at this type of shop, purchases in the last hour, amount divided by the card's earlier average, and the share of earlier purchases at this hour.
+
+| On new people (459 frauds) | PR-AUC | Frauds in top 1,000 |
+|---|---|---|
+| Model 1, logistic regression, 5 features | 0.074 | 142 |
+| XGBoost, default depth 6, 100 trees | 0.045 | 74 |
+| XGBoost, depth 3, 5 features | 0.116 | 135 |
+| **Model 4, logistic regression, 9 features** | 0.088 | **177** |
+
+**Chosen: model 4.** It catches the most fraud in the top 1,000 alerts on unseen people, its score barely drops from validation (0.097) to new people (0.088), and its weights explain every decision. XGBoost with deep trees learned rules specific to the training people; shallower trees fixed most of that, but it still ranked fewer frauds at the very top, where investigators look.
+
+Strongest weights (scaled features): shopping at the card's usual hour pushes the score down the most (−1.40); a new shop (+0.60) and several purchases in the last hour (+0.50) push it up.
 
 ## Progress
 

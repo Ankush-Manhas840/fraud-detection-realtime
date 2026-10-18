@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Learning Plan</title>
+<style>
+:root{
+  --bg:#f5f5f7;--card:#ffffff;--ink:#1d1d1f;--ink2:#6e6e73;--line:#e5e5ea;
+  --accent:#0071e3;--done:#34c759;--tint:#eef5ff;--code:#f2f2f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#a1a1a6;--line:#38383a;
+    --accent:#2997ff;--done:#30d158;--tint:#0a2540;--code:#2c2c2e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#a1a1a6;--line:#38383a;
+  --accent:#2997ff;--done:#30d158;--tint:#0a2540;--code:#2c2c2e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:100%/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:clamp(2rem,5vw,3rem);line-height:1.05;letter-spacing:-0.02em;margin:0 0 12px;font-weight:700}
+h2{font-size:1.5rem;letter-spacing:-0.015em;line-height:1.2;margin:56px 0 16px;font-weight:700}
+h3{font-size:1.05rem;margin:0 0 6px;font-weight:600}
+p{margin:0 0 12px}
+.lead{font-size:1.15rem;color:var(--ink2);max-width:640px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:0 0 12px}
+.muted{color:var(--ink2)}
+code,pre{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em}
+code{background:var(--code);padding:2px 6px;border-radius:6px}
+pre{background:var(--code);padding:14px 16px;border-radius:12px;overflow-x:auto;margin:10px 0 0;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.pill{background:var(--tint);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:.92rem}
+.arrow{color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.term b{display:block;margin-bottom:2px}
+.progress{display:flex;align-items:center;gap:16px;margin:28px 0 0}
+.ring{width:64px;height:64px;flex:none}
+.ring circle{fill:none;stroke-width:6}
+.ring .track{stroke:var(--line)}
+.ring .bar{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset 450ms cubic-bezier(.2,.8,.2,1)}
+.count{font-size:1.5rem;font-weight:700;letter-spacing:-0.01em}
+.task{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line);cursor:pointer;user-select:none}
+.task:first-of-type{border-top:none}
+.box{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ink2);flex:none;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:transform 120ms ease-out,background 160ms ease-out,border-color 160ms ease-out}
+.task:active .box{transform:scale(.86)}
+.box svg{opacity:0;width:12px;height:12px;transition:opacity 120ms}
+.task.on .box{background:var(--done);border-color:var(--done)}
+.task.on .box svg{opacity:1}
+.task.on .t{color:var(--ink2);text-decoration:line-through}
+.t{font-weight:600}
+.meta{font-size:.9rem;color:var(--ink2);margin-top:2px}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.02em;color:var(--accent);background:var(--tint);border-radius:999px;padding:3px 10px;margin-bottom:10px}
+details{border-top:1px solid var(--line);padding:12px 0}
+details:first-of-type{border-top:none}
+summary{cursor:pointer;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";display:inline-block;width:18px;color:var(--accent)}
+details[open] summary::before{content:"\2212"}
+details p{margin:8px 0 0 18px;color:var(--ink2)}
+footer{margin-top:56px;color:var(--ink2);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){.ring .bar,.box,.box svg{transition:none}.task:active .box{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Learn APIs with FastAPI</h1>
+<p class="lead">A two-day plan to go from "what is an API?" to serving your fraud model. Tick tasks as you finish them; progress is saved in this browser.</p>
+
+<div class="progress">
+  <svg class="ring" viewBox="0 0 64 64" aria-hidden="true">
+    <circle class="track" cx="32" cy="32" r="27"/>
+    <circle class="bar" id="bar" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65" transform="rotate(-90 32 32)"/>
+  </svg>
+  <div><div class="count" id="count">0 of 0</div><div class="muted">tasks done</div></div>
+</div>
+
+<h2>What an API is</h2>
+<div class="card">
+  <p>Think of a restaurant. You never walk into the kitchen. You give your order to a <b>waiter</b>, the kitchen cooks it, and the waiter brings back your food.</p>
+  <p>An <b>API is the waiter for a program</b>. Other programs send it a request, it does the work, and it sends back an answer. They never need to know what happens inside.</p>
+  <h3 style="margin-top:16px">Your fraud API</h3>
+  <div class="flow">
+    <span class="pill">A purchase arrives</span><span class="arrow">&rarr;</span>
+    <span class="pill">Your API</span><span class="arrow">&rarr;</span>
+    <span class="pill">Model gives a score</span><span class="arrow">&rarr;</span>
+    <span class="pill">Answer: fraud or not</span>
+  </div>
+<pre>Send:      {"amount": 450, "hour": 14, "outside_us": 1, ...}
+Get back:  {"fraud_score": 0.87, "is_fraud": true}</pre>
+</div>
+
+<h2>Words you will meet</h2>
+<div class="grid">
+  <div class="card term"><b>HTTP</b><span class="muted">The language programs use to talk over the web. Every request and answer follows its rules.</span></div>
+  <div class="card term"><b>Request and response</b><span class="muted">The request is the order you send. The response is what comes back.</span></div>
+  <div class="card term"><b>Endpoint</b><span class="muted">One address your API answers on, like <code>/predict</code> or <code>/health</code>.</span></div>
+  <div class="card term"><b>GET and POST</b><span class="muted">GET asks for something. POST sends data to be processed, like a purchase to score.</span></div>
+  <div class="card term"><b>JSON</b><span class="muted">The text format for sending data. It looks like a Python dictionary.</span></div>
+  <div class="card term"><b>Status code</b><span class="muted">A number saying how it went: 200 fine, 404 not found, 422 bad input, 500 server error.</span></div>
+  <div class="card term"><b>FastAPI</b><span class="muted">The Python library you use to build the API.</span></div>
+  <div class="card term"><b>Uvicorn</b><span class="muted">The program that runs your API and keeps it listening for requests.</span></div>
+  <div class="card term"><b>Pydantic</b><span class="muted">Checks that incoming data has the right fields and types, and rejects bad input automatically.</span></div>
+  <div class="card term"><b>/docs page</b><span class="muted">A web page FastAPI makes for you, where you can try your API by clicking.</span></div>
+</div>
+
+<h2>Day 1: understand APIs and build a toy one</h2>
+<div class="card" data-group>
+  <span class="tag">About 4 hours</span>
+  <div class="task" data-id="d1a"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">How HTTP works: requests, responses, GET, POST, status codes</div><div class="meta"><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview" target="_blank" rel="noopener">MDN: An overview of HTTP</a> &middot; 45 minutes</div></div></div>
+  <div class="task" data-id="d1b"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">What JSON is</div><div class="meta"><a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON" target="_blank" rel="noopener">MDN: Working with JSON</a> (read for the idea, skip the JavaScript) &middot; 20 minutes</div></div></div>
+  <div class="task" data-id="d1c"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Your first API, run it with uvicorn, open /docs</div><div class="meta"><a href="https://fastapi.tiangolo.com/tutorial/first-steps/" target="_blank" rel="noopener">FastAPI: First Steps</a> &middot; 1 hour</div></div></div>
+  <div class="task" data-id="d1d"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Path and query parameters</div><div class="meta"><a href="https://fastapi.tiangolo.com/tutorial/path-params/" target="_blank" rel="noopener">Path Parameters</a> and <a href="https://fastapi.tiangolo.com/tutorial/query-params/" target="_blank" rel="noopener">Query Parameters</a> &middot; 1 hour</div></div></div>
+  <div class="task" data-id="d1e"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Sending data to the API with Pydantic (most important for your project)</div><div class="meta"><a href="https://fastapi.tiangolo.com/tutorial/body/" target="_blank" rel="noopener">FastAPI: Request Body</a> &middot; 1 hour</div></div></div>
+</div>
+
+<h2>Practice project: student marks API</h2>
+<div class="card" data-group>
+  <span class="tag">About 1 day &middot; separate folder, e.g. D:\Coding\api-practice</span>
+  <p class="muted">Small on purpose. Every step practises one skill your fraud API needs.</p>
+  <div class="task" data-id="p1"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">/hello returns a greeting</div><div class="meta">Your first endpoint, running uvicorn, the /docs page</div></div></div>
+  <div class="task" data-id="p2"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">/add?a=3&amp;b=4 returns 7</div><div class="meta">Query parameters</div></div></div>
+  <div class="task" data-id="p3"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">POST /grade: send marks, get a grade back</div><div class="meta">Request body with a Pydantic model, exactly like sending a purchase</div></div></div>
+  <div class="task" data-id="p4"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Load a tiny saved scikit-learn model and predict pass or fail</div><div class="meta">Serving a model: a mini fraud API</div></div></div>
+  <div class="task" data-id="p5"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Send wrong input (marks = "abc") and read the 422 error</div><div class="meta">Automatic input checking</div></div></div>
+  <div class="task" data-id="p6"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Write 2 or 3 automatic tests</div><div class="meta"><a href="https://fastapi.tiangolo.com/tutorial/testing/" target="_blank" rel="noopener">FastAPI: Testing</a> with TestClient</div></div></div>
+</div>
+
+<h2>Day 2: build the fraud API</h2>
+<div class="card" data-group>
+  <span class="tag">About 4 to 5 hours</span>
+  <div class="task" data-id="f1"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Save the model</div><div class="meta"><code>joblib.dump(model, "../models/model.joblib")</code></div></div></div>
+  <div class="task" data-id="f2"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">/health endpoint that returns "ok"</div><div class="meta">Checks the API is alive</div></div></div>
+  <div class="task" data-id="f3"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Pydantic schema for one purchase's features</div><div class="meta">In <code>src/api/schemas.py</code></div></div></div>
+  <div class="task" data-id="f4"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">/predict loads the model once at start-up and returns score and decision</div><div class="meta">In <code>src/api/main.py</code></div></div></div>
+  <div class="task" data-id="f5"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Try it in /docs with a real fraud purchase and a normal one</div><div class="meta">The fraud one should score much higher</div></div></div>
+  <div class="task" data-id="f6"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Automatic tests for /health and /predict</div><div class="meta">In <code>tests/</code>, run with pytest</div></div></div>
+</div>
+
+<h2>Check yourself</h2>
+<div class="card">
+  <p class="muted">Answer out loud, without notes. These are common interview questions.</p>
+  <details><summary>What is an API, in one sentence?</summary><p>A way for one program to ask another for something and get an answer back, without knowing how the other works inside.</p></details>
+  <details><summary>Why is /predict a POST and not a GET?</summary><p>Because you send data (a purchase's features) to be processed. GET is for asking for something without sending a body of data.</p></details>
+  <details><summary>What does Pydantic do for you?</summary><p>It checks every incoming request has the right fields and types, and automatically answers with a 422 error if not, so bad data never reaches the model.</p></details>
+  <details><summary>Why load the model once at start-up, not inside /predict?</summary><p>Loading from disk is slow. Doing it once means each prediction only runs the model, which takes milliseconds.</p></details>
+  <details><summary>What do status codes 200, 404, 422 and 500 mean?</summary><p>200: it worked. 404: that address does not exist. 422: your input was wrong. 500: something broke inside the server.</p></details>
+  <details><summary>How does your fraud API connect to the rest of the project?</summary><p>The Kafka consumer builds each purchase's features from Redis, then sends them to /predict. The answer is logged and shown on the dashboard.</p></details>
+</div>
+
+<footer>Part of the fraud-detection-realtime project &middot; docs/api-learning-plan.html</footer>
+</div>
+
+<script>
+const tasks=[...document.querySelectorAll('.task')];
+const bar=document.getElementById('bar'),count=document.getElementById('count'),C=169.65;
+let saved=[];try{saved=JSON.parse(localStorage.getItem('apiPlan')||'[]')}catch(e){}
+function draw(){const n=tasks.filter(t=>t.classList.contains('on')).length;count.textContent=n+' of '+tasks.length;bar.style.strokeDashoffset=C*(1-n/tasks.length)}
+tasks.forEach(t=>{
+  if(saved.includes(t.dataset.id))t.classList.add('on');
+  t.setAttribute('role','checkbox');t.tabIndex=0;t.setAttribute('aria-checked',t.classList.contains('on'));
+  const toggle=e=>{if(e.target.closest('a'))return;t.classList.toggle('on');t.setAttribute('aria-checked',t.classList.contains('on'));
+    const on=tasks.filter(x=>x.classList.contains('on')).map(x=>x.dataset.id);try{localStorage.setItem('apiPlan',JSON.stringify(on))}catch(e){}draw()};
+  t.addEventListener('pointerdown',toggle);
+  t.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle(e)}});
+});
+draw();
+</script>
+</body>
+</html>

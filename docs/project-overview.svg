@@ -115,8 +115,8 @@
     <g transform="translate(56,418)">
       <text class="label" x="0" y="20">Models and tracking</text>
       <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
-      <rect class="doing" x="244" y="8" width="304" height="14" rx="7"/>
-      <text class="pct" x="1024" y="21">40%</text>
+      <rect class="doing" x="244" y="8" width="608" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">80%</text>
     </g>
     <g transform="translate(56,458)">
       <text class="label" x="0" y="20">API and tests</text>
