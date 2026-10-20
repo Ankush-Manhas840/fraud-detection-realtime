@@ -8,40 +8,28 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 ## Architecture
 
-```
-TabFormer data → Stream producer → Kafka topic → Consumer
-                                                 │
-                                    builds live features (Redis state)
-                                                 │
-                                                 ▼
-                                    FastAPI /predict  ←  model from MLflow registry
-                                                 │
-                                    score + SHAP reasons + decision
-                                                 │
-                                    SQLite prediction log → Evidently drift report
-                                                 │
-                                    Streamlit dashboard
-```
+<p align="center"><img src="docs/img/architecture.svg" alt="Seven stages from data to dashboard: data, features, model and API are done; streaming is next; monitoring and dashboard are planned" width="100%"></p>
+
+A producer replays purchases in time order into a Kafka topic. A consumer keeps each card's recent history in Redis, builds the 9 features for each new purchase, and sends them to the FastAPI `/predict` endpoint, which loads the saved model and returns a score and a decision. Every prediction is logged to SQLite for drift checks (Evidently) and shown on a Streamlit dashboard.
 
 ## Tech stack
 
-| Area | Tool |
-|---|---|
-| Language | Python 3.10+ |
-| Data | pandas, NumPy |
-| Models | scikit-learn (LogReg, Isolation Forest), XGBoost, LightGBM |
-| Explainability | SHAP |
-| Experiment tracking & registry | MLflow |
-| API | FastAPI, Pydantic, Uvicorn |
-| Streaming | Kafka (via Docker), `confluent-kafka` |
-| Online feature state | Redis (via Docker), `redis-py` |
-| Prediction log | SQLite (Python `sqlite3`) |
-| Drift monitoring | Evidently |
-| Dashboard | Streamlit |
-| Testing | pytest, FastAPI `TestClient` |
-| Config | YAML (`pyyaml`) |
-| Containers (local only) | Docker, Docker Compose |
+| Area | Tool | Status |
+|---|---|---|
+| Language | Python 3.10+ | used |
+| Data | pandas, NumPy, Parquet | used |
+| Models | scikit-learn logistic regression (chosen), XGBoost (compared) | used |
+| API | FastAPI, Pydantic, Uvicorn | used |
+| Testing | pytest, FastAPI `TestClient` | used |
+| Config | YAML (`pyyaml`) | used |
+| Streaming | Kafka (via Docker), `confluent-kafka` | next |
+| Online feature state | Redis (via Docker), `redis-py` | next |
+| Containers (local only) | Docker, Docker Compose | next |
+| Prediction log | SQLite (Python `sqlite3`) | planned |
+| Drift monitoring | Evidently | planned |
+| Dashboard | Streamlit | planned |
 
+Dropped from the original plan: LightGBM and Isolation Forest (XGBoost already showed that a more complex model generalised worse here), SHAP (logistic regression weights explain each score directly) and MLflow (the comparison table below records every model).
 ## Dataset
 
 [IBM TabFormer credit card transactions](https://github.com/IBM/TabFormer): realistic **synthetic** card transactions from IBM research ([paper](https://arxiv.org/abs/1910.03033)). 24,386,900 transactions from 2,000 people and 6,139 cards, 1991 to 2020, with 29,757 frauds (about 12 in 10,000).
@@ -111,6 +99,8 @@ Because the simulation never blocks a stolen card, fraud comes in bursts. A rand
 
 Each clue was compared between fraud and normal purchases. Rates are frauds per 10,000 purchases; the overall rate is about 11.
 
+<p align="center"><img src="docs/img/eda-clues.svg" alt="Frauds per 10,000 purchases: jewellery shops 608, electronics 562, abroad 391, first visit to a shop 155, online 52, all purchases 11" width="100%"></p>
+
 | Clue | What was found | Use it? |
 |---|---|---|
 | `outside_us` (no US zip, country name in `merchant_state`) | 391 abroad against 9 at home, **about 45 times riskier**. Under 1% of purchases but about a quarter of all fraud. | Yes |
@@ -121,6 +111,8 @@ Each clue was compared between fraud and normal purchases. Rates are frauds per 
 | `amount` | Middle fraud purchase $70 against $30 for normal, but fraud avoids very large purchases. | Yes |
 | `hour` | Highest from 11 am to 2 pm (about 19), lowest from 8 pm to midnight (about 2). Not a night-time pattern: the simulation models fraudsters working regular hours. | Yes |
 | `year` | Jumps between 0 and 28 because fraud comes in bursts and there are few people. A model also has to work on future years. | No |
+
+<p align="center"><img src="docs/img/eda-hour.svg" alt="Fraud per 10,000 purchases by hour: highest around noon at 18.6, lowest at 11 pm at 2.1, average 11" width="100%"></p>
 
 `new_shop` and `gap_minutes` come from each card's own history (rows sorted by user, card and time). In the live system they are exactly what Redis will keep per card.
 
@@ -156,6 +148,8 @@ Fraud is described as "take over an account, transfer the money to another accou
 
 In fraud rows the receiver's balance often does not change even though money was sent (`oldbalanceDest == newbalanceDest`):
 
+<p align="center"><img src="docs/img/paysim-leak.svg" alt="Receiver balance unchanged: fraud 49.8 percent, all normal 36.4 percent, normal transfers and cash-outs 0.06 percent" width="100%"></p>
+
 | Group | Receiver balance unchanged |
 |---|---|
 | Fraud | 49.8% |
@@ -184,7 +178,7 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 - Train: see [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb) (script version coming in `src/train.py`)
 - Start API (from the project folder): `.venv\Scripts\python -m uvicorn src.api.main:app --reload`, then open http://127.0.0.1:8000/docs
 - Run tests: `.venv\Scripts\python -m pytest -v`
-- Start Docker services (Kafka + Redis): `docker compose up -d`
+- Start Docker services (Kafka + Redis), with Docker Desktop running: `docker compose up -d`
 - Start stream: _TODO_
 - Open dashboard: _TODO_
 
@@ -205,7 +199,7 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 
 Analysis in [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb). Split by time: train on purchases before 25 April 2017 (2.4 million rows, 2,805 frauds), validate on purchases after it (600,000 rows, 616 frauds). Random guessing scores a PR-AUC of about 0.001 and finds about 1 fraud in 1,000 alerts.
 
-All models are logistic regression with `class_weight="balanced"` in a scikit-learn pipeline (scaling for numbers, one-hot encoding for categories).
+Models 1 to 4 are logistic regression with `class_weight="balanced"` in a scikit-learn pipeline (scaling for numbers, one-hot encoding for categories). XGBoost is compared [further down](#per-card-history-features-and-the-final-choice).
 
 | Model | Features | PR-AUC | Frauds in top 1,000 alerts | Precision / recall at top 1,000 |
 |---|---|---|---|---|
@@ -217,6 +211,8 @@ All models are logistic regression with `class_weight="balanced"` in a scikit-le
 ### Adding a strong feature made the model worse
 
 `use_chip` looked strong in EDA (online about 11 times riskier than swipe), yet adding it cut the frauds in the top 1,000 alerts from 150 to 17. Comparing the two periods showed **drift**:
+
+<p align="center"><img src="docs/img/drift-use-chip.svg" alt="Online fraud per 10,000: 66.4 before 2017, 0 in validation and 1.5 for new people after 2017; chip and swipe rose" width="100%"></p>
 
 | Fraud per 10,000 | Train (before Apr 2017) | Validation (after) | New people (after) |
 |---|---|---|---|
@@ -245,6 +241,8 @@ A small drop is expected on unseen people; the model generalises.
 
 Four more features compare each purchase with the same card's earlier purchases only (no future data): first time at this type of shop, purchases in the last hour, amount divided by the card's earlier average, and the share of earlier purchases at this hour.
 
+<p align="center"><img src="docs/img/model-comparison.svg" alt="Frauds in the top 1,000 alerts on new people: logistic regression 9 features 177, 5 features 142, XGBoost depth 3 135, depth 6 74, random 1" width="100%"></p>
+
 | On new people (459 frauds) | PR-AUC | Frauds in top 1,000 |
 |---|---|---|
 | Model 1, logistic regression, 5 features | 0.074 | 142 |
@@ -258,45 +256,39 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 
 ## Progress
 
-### Week 1 — Data, imbalance, features
-- [x] **Oct 2** — Scaffold repo, download PaySim `[chore: initial project scaffold]`
-- [x] **Oct 3** — EDA in `01_eda.ipynb` `[feat: add EDA notebook]` *(done Oct 15: PaySim dropped, TabFormer EDA in `01b_eda_ibm.ipynb`)*
-- [x] **Oct 4** — Baseline Logistic Regression with `class_weight` `[feat: add baseline model]`
-- [ ] **Oct 5** — Metrics: precision, recall, PR-AUC, confusion matrix in `evaluate.py` `[feat: add evaluation metrics]`
-- [x] **Oct 6** — Time-based train/test split (done in the notebook; moving to `data.py` next) `[feat: add time-based split]`
-- [ ] **Oct 7** — Velocity features `[feat: add velocity features]`
-- [x] **Oct 17** — Feature pipeline in `src/data.py` and `src/features.py` (hour, outside_us, new_shop, gap_minutes); tested on new people
-- [ ] **Oct 8** — Deviation features (amount compared with the card's usual amount, new shop, new type of shop, outside the US), all in `features.py` `[feat: add deviation features]`. *Balance-error features dropped: they leaked the label in PaySim, and TabFormer has no balances.*
-### Week 2 — Models, explainability, tracking
-- [ ] **Oct 9** — XGBoost with `scale_pos_weight` `[feat: add xgboost model]`
-- [ ] **Oct 10** — LightGBM + comparison table in README `[feat: add lightgbm and comparison]`
-- [ ] **Oct 11** — Cost-based threshold tuning `[feat: add threshold tuning]`
-- [ ] **Oct 12** — Isolation Forest comparison `[feat: add isolation forest]`
-- [ ] **Oct 13** — SHAP explanations `[feat: add SHAP explanations]`
-- [ ] **Oct 14** — MLflow experiment tracking `[feat: add mlflow tracking]`
-- [ ] **Oct 15** — MLflow model registry, save best model. *Buffer day* `[feat: register best model]`
-### Week 3 — API, tests, clean code
-- [x] **Oct 16** — FastAPI app with `/health` `[feat: add fastapi app]`
-- [x] **Oct 17** — Pydantic schemas `[feat: add request/response schemas]`
-- [x] **Oct 18** — `/predict` with model loaded at startup `[feat: add predict endpoint]`
-- [ ] ~~**Oct 19** — SHAP reasons in response~~ skipped: logistic regression weights already explain each score; latency logging moves to monitoring `[feat: add reasons and latency]`
-- [ ] **Oct 20** — pytest for features `[test: add feature tests]`
-- [x] **Oct 21** — API tests with TestClient `[test: add api tests]`
-- [ ] **Oct 22** — YAML config + logging cleanup. *Buffer day* `[refactor: config and logging]`
-### Week 4 — Streaming and monitoring
-- [ ] **Oct 23** — Simple stream: producer → API, in-memory `UserState` `[feat: add simple stream simulator]`
-- [ ] **Oct 24** — Docker basics, `docker compose up` for Kafka + Redis `[chore: add docker compose]`
-- [ ] **Oct 25** — Kafka topics, producer, consumer concepts `[feat: add kafka producer]`
-- [ ] **Oct 26** — Kafka consumer builds features and calls API `[feat: add kafka consumer]`
-- [ ] **Oct 27** — Move user state to Redis `[feat: redis feature state]`
-- [ ] **Oct 28** — SQLite prediction log `[feat: add prediction logging]`
-- [ ] **Oct 29** — Evidently drift report `[feat: add drift monitoring]`
-- [ ] **Added** — Dockerfile for the FastAPI app, and add the API to `docker-compose.yml` so API + Kafka + Redis start together `[feat: dockerize api]`
-### Final
-- [ ] **Oct 30** — Streamlit dashboard `[feat: add live dashboard]`
-- [ ] **Oct 31** — Final README, architecture diagram, demo GIF, LinkedIn post `[docs: final README]`
+### Done
+- [x] Project scaffold, config and folder layout
+- [x] EDA on PaySim, found label leakage and non-repeating senders, dataset dropped ([details](#eda-findings-paysim-dataset-dropped))
+- [x] EDA on TabFormer: cleaning, data quality, clues ([details](#eda-findings-tabformer))
+- [x] Time-based split, baseline logistic regression, precision / recall / PR-AUC
+- [x] Feature pipeline in `src/data.py` and `src/features.py`, checked to match the notebook exactly
+- [x] Test on 253 new people from a different slice of the file
+- [x] Per-card history features (new shop type, purchases in the last hour, amount against usual, usual hour)
+- [x] XGBoost comparison (depth 6 and 3), drift investigation of `use_chip`, final model choice
+- [x] Threshold (0.9862, about 1,000 alerts per 600,000 purchases), saved model
+- [x] FastAPI app with `/health` and `/predict`, Pydantic schemas, pytest API tests
+
+### Next
+- [ ] Docker basics, `docker compose up` for Kafka and Redis
+- [ ] Producer replays purchases into Kafka in time order
+- [ ] Consumer builds features from Redis state and calls `/predict`
+- [ ] Dockerfile for the API, so API + Kafka + Redis start together
+
+### Then
+- [ ] SQLite prediction log and an Evidently drift report
+- [ ] Streamlit dashboard of live alerts
+- [ ] Real feature tests in `tests/test_features.py`
+- [ ] CI: run pytest on every push with GitHub Actions
+- [ ] Final README, demo GIF
+
+### Skipped, with reasons
+- LightGBM, Isolation Forest: the XGBoost comparison already showed simpler generalises better on this data
+- SHAP: logistic regression weights explain each score directly
+- MLflow: the results table records every model; may be added later
 
 ## Future work
 
-- AWS deployment (SageMaker / EC2, Kinesis, Lambda, CloudWatch)
-- CI/CD
+- Deploy the API container on AWS (ECR + EC2 or ECS), with CloudWatch logs
+- CD: build and deploy automatically when tests pass
+- Retrain on more people, and retry XGBoost with more data
+- Per-card "unusual weekday" and "new city" features

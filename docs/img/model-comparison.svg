@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 294" width="780" height="294" role="img" aria-labelledby="t d"><title id="t">Frauds caught in the top 1,000 alerts</title><desc id="d">253 people the models never saw, purchases after 25 April 2017 (459 frauds in total)</desc><style>
+  .bg{fill:#fcfcfb} .t1{fill:#0b0b0b} .t2{fill:#52514e} .grid{stroke:#e4e3df}
+  .s1{fill:#2a78d6} .s2{fill:#eb6834} .s3{fill:#1baf7a} .muted{fill:#c9c8c2}
+  .l1{stroke:#2a78d6} .ref{stroke:#8a8983}
+  .box{fill:#ffffff;stroke:#d6d5d0} .done{fill:#1baf7a} .next{fill:#2a78d6} .todo{fill:#c9c8c2}
+  text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+  .h{font-size:20px;font-weight:700} .sub{font-size:13px} .lab{font-size:13px} .val{font-size:13px;font-weight:600} .ax{font-size:11px}
+  @media (prefers-color-scheme: dark){
+    .bg{fill:#1a1a19} .t1{fill:#f0efec} .t2{fill:#c3c2b7} .grid{stroke:#34332f}
+    .s1{fill:#3987e5} .s2{fill:#d95926} .s3{fill:#199e70} .muted{fill:#4a4944}
+    .l1{stroke:#3987e5} .ref{stroke:#8f8e86}
+    .box{fill:#232321;stroke:#3d3c38} .done{fill:#199e70} .next{fill:#3987e5} .todo{fill:#4a4944}
+  }
+</style><rect class="bg" width="780" height="294" rx="14"/><text class="h t1" x="24" y="36">Frauds caught in the top 1,000 alerts</text><text class="sub t2" x="24" y="58">253 people the models never saw, purchases after 25 April 2017 (459 frauds in total)</text><text class="lab t1" x="198" y="92" text-anchor="end">Logistic regression, 9 features</text><path class="s1" d="M210,78 h476.0 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-476.0 z"/><text class="val t1" x="698.0" y="92">177</text><text class="lab t1" x="198" y="126" text-anchor="end">Logistic regression, 5 features</text><path class="muted" d="M210,112 h381.08474576271186 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-381.08474576271186 z"/><text class="val t1" x="603.0847457627119" y="126">142</text><text class="lab t1" x="198" y="160" text-anchor="end">XGBoost, depth 3</text><path class="muted" d="M210,146 h362.10169491525426 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-362.10169491525426 z"/><text class="val t1" x="584.1016949152543" y="160">135</text><text class="lab t1" x="198" y="194" text-anchor="end">XGBoost, depth 6</text><path class="muted" d="M210,180 h196.67796610169492 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-196.67796610169492 z"/><text class="val t1" x="418.6779661016949" y="194">74</text><text class="lab t1" x="198" y="228" text-anchor="end">Random guessing</text><path class="muted" d="M210,214 h-1.288135593220339 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h--1.288135593220339 z"/><text class="val t1" x="220.71186440677965" y="228">1</text><text class="ax t2" x="24" y="276">Blue = chosen model. Its PR-AUC also drops least from validation (0.097) to new people (0.088).</text></svg>

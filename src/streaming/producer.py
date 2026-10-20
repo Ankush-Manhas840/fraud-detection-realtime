@@ -2,8 +2,8 @@
 
 
 def main():
-    """Replay PaySim rows as a stream."""
-    # TODO (Oct 23, Oct 25): simple stream -> Kafka producer.
+    """Replay TabFormer purchases (after the 2017 cut-off) as a stream, in time order."""
+    # TODO: simple stream -> Kafka producer.
     raise NotImplementedError
 
 

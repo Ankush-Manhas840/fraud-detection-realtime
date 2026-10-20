@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 226" width="760" height="226" role="img" aria-labelledby="t d"><title id="t">PaySim: the receiver balance leaked the label</title><desc id="d">Share of transactions where the receiver's balance did not change although money was sent</desc><style>
+  .bg{fill:#fcfcfb} .t1{fill:#0b0b0b} .t2{fill:#52514e} .grid{stroke:#e4e3df}
+  .s1{fill:#2a78d6} .s2{fill:#eb6834} .s3{fill:#1baf7a} .muted{fill:#c9c8c2}
+  .l1{stroke:#2a78d6} .ref{stroke:#8a8983}
+  .box{fill:#ffffff;stroke:#d6d5d0} .done{fill:#1baf7a} .next{fill:#2a78d6} .todo{fill:#c9c8c2}
+  text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+  .h{font-size:20px;font-weight:700} .sub{font-size:13px} .lab{font-size:13px} .val{font-size:13px;font-weight:600} .ax{font-size:11px}
+  @media (prefers-color-scheme: dark){
+    .bg{fill:#1a1a19} .t1{fill:#f0efec} .t2{fill:#c3c2b7} .grid{stroke:#34332f}
+    .s1{fill:#3987e5} .s2{fill:#d95926} .s3{fill:#199e70} .muted{fill:#4a4944}
+    .l1{stroke:#3987e5} .ref{stroke:#8f8e86}
+    .box{fill:#232321;stroke:#3d3c38} .done{fill:#199e70} .next{fill:#3987e5} .todo{fill:#4a4944}
+  }
+</style><rect class="bg" width="760" height="226" rx="14"/><text class="h t1" x="24" y="36">PaySim: the receiver balance leaked the label</text><text class="sub t2" x="24" y="58">Share of transactions where the receiver's balance did not change although money was sent</text><text class="lab t1" x="198" y="92" text-anchor="end">Fraud</text><path class="s2" d="M210,78 h456.0 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-456.0 z"/><text class="val t1" x="678.0" y="92">49.8%</text><text class="lab t1" x="198" y="126" text-anchor="end">All normal</text><path class="muted" d="M210,112 h332.2248995983936 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-332.2248995983936 z"/><text class="val t1" x="554.2248995983937" y="126">36.4%</text><text class="lab t1" x="198" y="160" text-anchor="end">Normal transfers and cash-outs</text><path class="muted" d="M210,146 h-2 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h--2 z"/><text class="val t1" x="220" y="160">0.06%</text><text class="ax t2" x="24" y="208">Fraud was cancelled, so balances never updated. The fair comparison (bottom bar) exposed it.</text></svg>
