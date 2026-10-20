@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 17):** baseline model tested on 253 people it never saw, in a later period: 142 real frauds in its top 1,000 alerts (random finds about 1), close to the 150 on its own people ([details](#test-on-new-people)). Data preparation now runs from `src/data.py` and `src/features.py`. Card-use type is left out because online fraud dropped sharply after 2017 in two independent groups ([drift](#adding-a-strong-feature-made-the-model-worse)). Four per-card history features then raised it to **177** on new people; XGBoost was tried and not chosen ([why](#per-card-history-features-and-the-final-choice)). Next: serve the model with FastAPI ([learning plan](docs/api-learning-plan.html)). The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 20):** the chosen model (logistic regression on 9 features, 177 real frauds in its top 1,000 alerts on unseen people) is served by a FastAPI app with `/health` and `/predict`, and tested with pytest. `/predict` flags a purchase when its score is at least 0.9862, the level that gives about 1,000 alerts per 600,000 purchases. Next: streaming with Docker, Kafka and Redis. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -182,10 +182,24 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
   new = build_features(clean(load_raw("data/raw/card_transaction.v1.csv", start=3_000_000)))  # next 3M rows
   ```
 - Train: see [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb) (script version coming in `src/train.py`)
-- Start API: _TODO_
+- Start API (from the project folder): `.venv\Scripts\python -m uvicorn src.api.main:app --reload`, then open http://127.0.0.1:8000/docs
+- Run tests: `.venv\Scripts\python -m pytest -v`
 - Start Docker services (Kafka + Redis): `docker compose up -d`
 - Start stream: _TODO_
 - Open dashboard: _TODO_
+
+## API
+
+`src/api/main.py` loads `models/model.joblib` once at start-up and reads the threshold from `config/config.yaml`. `src/api/schemas.py` validates every request with Pydantic, so a wrong type returns a 422 error before reaching the model.
+
+`POST /predict` takes one purchase's 9 features (built from the card's history; `gap_minutes` may be empty for a card's first purchase):
+
+| Purchase | Request (shortened) | Response |
+|---|---|---|
+| Suspicious | abroad, new shop, 4 purchases in the last hour, 12 times the usual amount, unusual hour | `{"fraud_score": 0.9999, "is_fraud": true}` |
+| Normal | usual shop and hour, usual amount, a day since the last purchase | `{"fraud_score": 0.0002, "is_fraud": false}` |
+
+`tests/test_api.py` checks that `/health` answers and that the suspicious purchase scores higher than the normal one.
 
 ## Results
 
@@ -262,12 +276,12 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [ ] **Oct 14** — MLflow experiment tracking `[feat: add mlflow tracking]`
 - [ ] **Oct 15** — MLflow model registry, save best model. *Buffer day* `[feat: register best model]`
 ### Week 3 — API, tests, clean code
-- [ ] **Oct 16** — FastAPI app with `/health` `[feat: add fastapi app]`
-- [ ] **Oct 17** — Pydantic schemas `[feat: add request/response schemas]`
-- [ ] **Oct 18** — `/predict` with model loaded at startup `[feat: add predict endpoint]`
-- [ ] **Oct 19** — SHAP reasons in response, latency logging `[feat: add reasons and latency]`
+- [x] **Oct 16** — FastAPI app with `/health` `[feat: add fastapi app]`
+- [x] **Oct 17** — Pydantic schemas `[feat: add request/response schemas]`
+- [x] **Oct 18** — `/predict` with model loaded at startup `[feat: add predict endpoint]`
+- [ ] ~~**Oct 19** — SHAP reasons in response~~ skipped: logistic regression weights already explain each score; latency logging moves to monitoring `[feat: add reasons and latency]`
 - [ ] **Oct 20** — pytest for features `[test: add feature tests]`
-- [ ] **Oct 21** — API tests with TestClient `[test: add api tests]`
+- [x] **Oct 21** — API tests with TestClient `[test: add api tests]`
 - [ ] **Oct 22** — YAML config + logging cleanup. *Buffer day* `[refactor: config and logging]`
 ### Week 4 — Streaming and monitoring
 - [ ] **Oct 23** — Simple stream: producer → API, in-memory `UserState` `[feat: add simple stream simulator]`

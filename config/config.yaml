@@ -9,8 +9,8 @@ features:
   velocity_windows: [1, 6, 24]   # hours
 
 model:
-  name: xgboost
-  threshold: 0.5               # tuned later on Oct 11
+  name: logistic_regression
+  threshold: 0.9862             # tuned later on Oct 11
   path: models/model.joblib
 
 mlflow:

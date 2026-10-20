@@ -1,22 +1,19 @@
-"""Pydantic request/response models for the API."""
 from pydantic import BaseModel
 
 
 class Transaction(BaseModel):
-    step: int
-    type: str
-    amount: float
-    nameOrig: str
-    oldbalanceOrg: float
-    newbalanceOrig: float
-    nameDest: str
-    oldbalanceDest: float
-    newbalanceDest: float
+    amount:float
+    hour :int
+    outside_us:int
+    new_shop:int
+    gap_minutes:float | None=None
+    new_shop_type:int
+    count_last_hour:float
+    amount_vs_usual:float
+    share_same_hour:float
 
 
 class PredictionResponse(BaseModel):
     fraud_score: float
     is_fraud: bool
-    reasons: list[str]
-    model_version: str
-    latency_ms: float
+   
