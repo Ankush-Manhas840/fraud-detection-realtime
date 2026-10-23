@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 20):** the chosen model (logistic regression on 9 features, 177 real frauds in its top 1,000 alerts on unseen people) is served by a FastAPI app with `/health` and `/predict`, and tested with pytest. `/predict` flags a purchase when its score is at least 0.9862, the level that gives about 1,000 alerts per 600,000 purchases. Next: streaming with Docker, Kafka and Redis. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 23):** the chosen model (logistic regression on 9 features, 177 real frauds in its top 1,000 alerts on unseen people) is served by a tested FastAPI app. Streaming has started: Kafka and Redis run in Docker, and the live per-card memory reproduces the training features on all 5,011 purchases of a test card ([details](#live-features)). Next: warm-up from history, then a loop that scores streamed purchases through the API. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -22,9 +22,9 @@ A producer replays purchases in time order into a Kafka topic. A consumer keeps 
 | API | FastAPI, Pydantic, Uvicorn | used |
 | Testing | pytest, FastAPI `TestClient` | used |
 | Config | YAML (`pyyaml`) | used |
-| Streaming | Kafka (via Docker), `confluent-kafka` | next |
-| Online feature state | Redis (via Docker), `redis-py` | next |
-| Containers (local only) | Docker, Docker Compose | next |
+| Streaming | Kafka (via Docker), `confluent-kafka` | running, producer next |
+| Online feature state | Python dict now, Redis (via Docker) next | in progress |
+| Containers (local only) | Docker, Docker Compose | used |
 | Prediction log | SQLite (Python `sqlite3`) | planned |
 | Drift monitoring | Evidently | planned |
 | Dashboard | Streamlit | planned |
@@ -195,6 +195,20 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 
 `tests/test_api.py` checks that `/health` answers and that the suspicious purchase scores higher than the normal one.
 
+## Live features
+
+At scoring time there is no table, only one purchase at a time, so `src/streaming/state.py` keeps a small "memory" per card and builds the same 9 features from it:
+
+| Function | Job |
+|---|---|
+| `empty_card_memory()` | a new card's memory: shops and shop types seen, last purchase time, purchase times in the last hour, running total and count, purchases per hour of day |
+| `features_from_memory(bag, purchase)` | the 9 features for one purchase, using only the card's past |
+| `update_memory(bag, purchase)` | adds the purchase to the memory after scoring, and drops purchase times older than an hour |
+
+Features are always computed **before** the memory is updated, the live version of "only use the past".
+
+**Training-serving check:** replaying all 5,011 purchases of user 0, card 0 one by one through these functions reproduced the training features from `src/features.py` exactly for 5 features and within floating-point rounding for `amount_vs_usual` (100% with `np.isclose`). So the model receives the same inputs live as it learned from.
+
 ## Results
 
 Analysis in [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb). Split by time: train on purchases before 25 April 2017 (2.4 million rows, 2,805 frauds), validate on purchases after it (600,000 rows, 616 frauds). Random guessing scores a PR-AUC of about 0.001 and finds about 1 fraud in 1,000 alerts.
@@ -269,7 +283,10 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [x] FastAPI app with `/health` and `/predict`, Pydantic schemas, pytest API tests
 
 ### Next
-- [ ] Docker basics, `docker compose up` for Kafka and Redis
+- [x] Docker set up, `docker compose up -d` runs Kafka and Redis
+- [x] Live per-card memory in `src/streaming/state.py`, matching the training features
+- [ ] Warm-up: load each card's history before the cut-off into memory
+- [ ] Simple loop: score streamed purchases through `/predict`
 - [ ] Producer replays purchases into Kafka in time order
 - [ ] Consumer builds features from Redis state and calls `/predict`
 - [ ] Dockerfile for the API, so API + Kafka + Redis start together

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker Learning Plan</title>
+<style>
+:root{
+  --bg:#f5f5f7;--card:#ffffff;--ink:#1d1d1f;--ink2:#6e6e73;--line:#e5e5ea;
+  --accent:#0071e3;--done:#34c759;--tint:#eef5ff;--code:#f2f2f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#a1a1a6;--line:#38383a;
+    --accent:#2997ff;--done:#30d158;--tint:#0a2540;--code:#2c2c2e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#a1a1a6;--line:#38383a;
+  --accent:#2997ff;--done:#30d158;--tint:#0a2540;--code:#2c2c2e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:100%/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:clamp(2rem,5vw,3rem);line-height:1.05;letter-spacing:-0.02em;margin:0 0 12px;font-weight:700}
+h2{font-size:1.5rem;letter-spacing:-0.015em;line-height:1.2;margin:56px 0 16px;font-weight:700}
+h3{font-size:1.05rem;margin:0 0 6px;font-weight:600}
+p{margin:0 0 12px}
+.lead{font-size:1.15rem;color:var(--ink2);max-width:640px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:0 0 12px}
+.muted{color:var(--ink2)}
+code,pre{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em}
+code{background:var(--code);padding:2px 6px;border-radius:6px}
+pre{background:var(--code);padding:14px 16px;border-radius:12px;overflow-x:auto;margin:10px 0 0;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.pill{background:var(--tint);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:.92rem}
+.arrow{color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.term b{display:block;margin-bottom:2px}
+.progress{display:flex;align-items:center;gap:16px;margin:28px 0 0}
+.ring{width:64px;height:64px;flex:none}
+.ring circle{fill:none;stroke-width:6}
+.ring .track{stroke:var(--line)}
+.ring .bar{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset 450ms cubic-bezier(.2,.8,.2,1)}
+.count{font-size:1.5rem;font-weight:700;letter-spacing:-0.01em}
+.task{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line);cursor:pointer;user-select:none}
+.task:first-of-type{border-top:none}
+.box{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ink2);flex:none;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:transform 120ms ease-out,background 160ms ease-out,border-color 160ms ease-out}
+.task:active .box{transform:scale(.86)}
+.box svg{opacity:0;width:12px;height:12px;transition:opacity 120ms}
+.task.on .box{background:var(--done);border-color:var(--done)}
+.task.on .box svg{opacity:1}
+.task.on .t{color:var(--ink2);text-decoration:line-through}
+.t{font-weight:600}
+.meta{font-size:.9rem;color:var(--ink2);margin-top:2px}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.02em;color:var(--accent);background:var(--tint);border-radius:999px;padding:3px 10px;margin-bottom:10px}
+details{border-top:1px solid var(--line);padding:12px 0}
+details:first-of-type{border-top:none}
+summary{cursor:pointer;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";display:inline-block;width:18px;color:var(--accent)}
+details[open] summary::before{content:"\2212"}
+details p{margin:8px 0 0 18px;color:var(--ink2)}
+footer{margin-top:56px;color:var(--ink2);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){.ring .bar,.box,.box svg{transition:none}.task:active .box{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Learn Docker</h1>
+<p class="lead">From "what is a container?" to running Kafka, Redis and your fraud API with one command. Tick tasks as you finish them; progress is saved in this browser.</p>
+
+<div class="progress">
+  <svg class="ring" viewBox="0 0 64 64" aria-hidden="true">
+    <circle class="track" cx="32" cy="32" r="27"/>
+    <circle class="bar" id="bar" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65" transform="rotate(-90 32 32)"/>
+  </svg>
+  <div><div class="count" id="count">0 of 0</div><div class="muted">tasks done</div></div>
+</div>
+
+<h2>What Docker is</h2>
+<div class="card">
+  <p>Think of a <b>lunch box</b>. Instead of telling someone "buy rice, cook it this way, add this curry", you hand them a sealed box with the meal already inside. It tastes the same in any kitchen.</p>
+  <p><b>Docker packs a program together with everything it needs</b> (the right Python, libraries, settings) into one sealed box, so it runs the same on your laptop, a friend's laptop or a cloud server. No more "it works on my machine".</p>
+  <h3 style="margin-top:16px">In your fraud project</h3>
+  <div class="flow">
+    <span class="pill">Kafka box</span><span class="arrow">+</span>
+    <span class="pill">Redis box</span><span class="arrow">+</span>
+    <span class="pill">Your API box</span><span class="arrow">&rarr;</span>
+    <span class="pill">docker compose up</span>
+  </div>
+<pre>docker compose up -d     # starts all of them
+docker compose down      # stops all of them</pre>
+</div>
+
+<h2>Words you will meet</h2>
+<div class="grid">
+  <div class="card term"><b>Image</b><span class="muted">The recipe: a frozen, read-only package of a program and everything it needs.</span></div>
+  <div class="card term"><b>Container</b><span class="muted">The cooked dish: a running copy of an image. One image can run as many containers.</span></div>
+  <div class="card term"><b>Docker Hub</b><span class="muted">A public shelf of ready-made images, like <code>redis:7</code> or <code>apache/kafka</code>.</span></div>
+  <div class="card term"><b>Tag</b><span class="muted">The version after the colon: <code>redis:7</code> means Redis version 7.</span></div>
+  <div class="card term"><b>Port mapping</b><span class="muted"><code>-p 6379:6379</code> connects a door on your laptop to a door inside the container.</span></div>
+  <div class="card term"><b>Volume</b><span class="muted">A folder that survives when a container is deleted, so data is not lost.</span></div>
+  <div class="card term"><b>Dockerfile</b><span class="muted">Your own recipe for building an image, step by step.</span></div>
+  <div class="card term"><b>Docker Compose</b><span class="muted">One file that starts several containers together. Your project already has <code>docker-compose.yml</code>.</span></div>
+  <div class="card term"><b>Daemon (engine)</b><span class="muted">The part that runs containers. It starts when Docker Desktop is open.</span></div>
+  <div class="card term"><b>docker vs docker compose</b><span class="muted"><code>docker</code> handles one container. <code>docker compose</code> handles a group.</span></div>
+</div>
+
+<h2>Day 1: learn the basics</h2>
+<div class="card">
+  <span class="tag">About 2 to 3 hours &middot; open Docker Desktop first</span>
+  <div class="task" data-id="d1"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Images and containers, and why Docker exists</div><div class="meta"><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/" target="_blank" rel="noopener">Docker docs: What is a container?</a> and the next page on images &middot; 30 minutes</div></div></div>
+  <div class="task" data-id="d2"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Run, list, stop and delete containers</div><div class="meta"><code>docker run</code>, <code>docker ps</code>, <code>docker stop</code>, <code>docker rm</code>, <code>docker images</code> &middot; type them yourself</div></div></div>
+  <div class="task" data-id="d3"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Ports: reach a program inside a container</div><div class="meta"><a href="https://docs.docker.com/get-started/docker-concepts/running-containers/publishing-ports/" target="_blank" rel="noopener">Docker docs: Publishing ports</a> &middot; 20 minutes</div></div></div>
+  <div class="task" data-id="d4"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Logs and getting inside a container</div><div class="meta"><code>docker logs</code> and <code>docker exec -it</code> &middot; how you debug</div></div></div>
+  <div class="task" data-id="d5"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Docker Compose: many containers from one file</div><div class="meta"><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-docker-compose/" target="_blank" rel="noopener">Docker docs: What is Docker Compose?</a> &middot; 30 minutes</div></div></div>
+  <div class="task" data-id="d6"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Writing a Dockerfile</div><div class="meta"><a href="https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/" target="_blank" rel="noopener">Docker docs: Writing a Dockerfile</a> &middot; FROM, COPY, RUN, CMD</div></div></div>
+</div>
+
+<h2>Practice: try these commands</h2>
+<div class="card">
+  <span class="tag">About 1 hour &middot; nothing here touches your project</span>
+  <p class="muted">Each one teaches one idea. Predict what will happen before pressing Enter.</p>
+  <div class="task" data-id="p1"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Run Redis and talk to it</div><div class="meta"><code>docker run -d --name test-redis -p 6379:6379 redis:7</code> then <code>docker exec -it test-redis redis-cli ping</code> &rarr; PONG</div></div></div>
+  <div class="task" data-id="p2"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">See what is running, and its logs</div><div class="meta"><code>docker ps</code> then <code>docker logs test-redis</code></div></div></div>
+  <div class="task" data-id="p3"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Stop and remove it</div><div class="meta"><code>docker stop test-redis</code> then <code>docker rm test-redis</code>, and check <code>docker ps -a</code></div></div></div>
+  <div class="task" data-id="p4"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Prove that data disappears without a volume</div><div class="meta">Save a key with <code>redis-cli set name ankush</code>, delete the container, start a new one: the key is gone</div></div></div>
+  <div class="task" data-id="p5"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Free memory and disk when done</div><div class="meta">Quit Docker Desktop when not using it; <code>docker system df</code> shows space used</div></div></div>
+</div>
+
+<h2>Project: Docker in the fraud system</h2>
+<div class="card">
+  <span class="tag">About 1 to 2 sessions</span>
+  <div class="task" data-id="f1"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Read docker-compose.yml line by line</div><div class="meta">What each of image, container_name, ports and environment means for Kafka and Redis</div></div></div>
+  <div class="task" data-id="f2"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Start Kafka and Redis</div><div class="meta"><code>docker compose up -d</code> from the project folder, then <code>docker compose ps</code></div></div></div>
+  <div class="task" data-id="f3"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Check both from Python</div><div class="meta">redis-py <code>ping()</code> returns True; a Kafka client can list topics</div></div></div>
+  <div class="task" data-id="f4"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Write a Dockerfile for the FastAPI app</div><div class="meta">Based on <a href="https://fastapi.tiangolo.com/deployment/docker/" target="_blank" rel="noopener">FastAPI: FastAPI in Containers</a></div></div></div>
+  <div class="task" data-id="f5"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Add the API to docker-compose.yml</div><div class="meta">One command now starts API + Kafka + Redis; open /docs to check</div></div></div>
+  <div class="task" data-id="f6"><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="t">Stop everything cleanly</div><div class="meta"><code>docker compose down</code></div></div></div>
+</div>
+
+<h2>Check yourself</h2>
+<div class="card">
+  <p class="muted">Answer out loud, without notes. These are common interview questions.</p>
+  <details><summary>What problem does Docker solve?</summary><p>"It works on my machine." A container carries the program with its exact environment, so it runs the same everywhere.</p></details>
+  <details><summary>Image or container: what is the difference?</summary><p>An image is the frozen recipe. A container is a running copy of it. You can start many containers from one image.</p></details>
+  <details><summary>How is a container different from a virtual machine?</summary><p>A virtual machine runs a whole separate operating system and is heavy. Containers share the host's kernel, so they start in seconds and use far less memory.</p></details>
+  <details><summary>What does -p 8000:8000 mean?</summary><p>Connect port 8000 on your laptop to port 8000 inside the container, so your browser can reach the program inside.</p></details>
+  <details><summary>Why is data lost when a container is deleted, and how do you keep it?</summary><p>A container's own storage is thrown away with it. A volume stores data outside the container, so it survives.</p></details>
+  <details><summary>What does each Dockerfile line do: FROM, COPY, RUN, CMD?</summary><p>FROM picks the starting image (like python:3.12). COPY puts your files in. RUN executes a build step, like pip install. CMD is the command that runs when the container starts.</p></details>
+  <details><summary>How did you use Docker in your project?</summary><p>Docker Compose runs Kafka and Redis locally, and the FastAPI service has its own image, so the whole fraud pipeline starts with one command and runs the same on AWS.</p></details>
+</div>
+
+<footer>Part of the fraud-detection-realtime project &middot; docs/docker-learning-plan.html</footer>
+</div>
+
+<script>
+const tasks=[...document.querySelectorAll('.task')];
+const bar=document.getElementById('bar'),count=document.getElementById('count'),C=169.65;
+let saved=[];try{saved=JSON.parse(localStorage.getItem('dockerPlan')||'[]')}catch(e){}
+function draw(){const n=tasks.filter(t=>t.classList.contains('on')).length;count.textContent=n+' of '+tasks.length;bar.style.strokeDashoffset=C*(1-n/tasks.length)}
+tasks.forEach(t=>{
+  if(saved.includes(t.dataset.id))t.classList.add('on');
+  t.setAttribute('role','checkbox');t.tabIndex=0;t.setAttribute('aria-checked',t.classList.contains('on'));
+  const toggle=e=>{if(e.target.closest('a'))return;t.classList.toggle('on');t.setAttribute('aria-checked',t.classList.contains('on'));
+    const on=tasks.filter(x=>x.classList.contains('on')).map(x=>x.dataset.id);try{localStorage.setItem('dockerPlan',JSON.stringify(on))}catch(e){}draw()};
+  t.addEventListener('pointerdown',toggle);
+  t.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle(e)}});
+});
+draw();
+</script>
+</body>
+</html>

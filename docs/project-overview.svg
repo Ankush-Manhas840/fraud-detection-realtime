@@ -127,15 +127,15 @@
     <g transform="translate(56,498)">
       <text class="label" x="0" y="20">Streaming and Redis</text>
       <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
-      <rect class="done" x="244" y="8" width="76" height="14" rx="7"/>
-      <text class="pct" x="1024" y="21">10%</text>
+      <rect class="doing" x="244" y="8" width="266" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">35%</text>
     </g>
     <g transform="translate(56,538)">
       <text class="label" x="0" y="20">Monitoring and dashboard</text>
       <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
       <text class="pct" x="1024" y="21">0%</text>
     </g>
-    <text class="note" x="300" y="596">Streaming 10%: Docker Compose for Kafka and Redis is set up, not yet used.</text>
+    <text class="note" x="300" y="596">Streaming 35%: Kafka and Redis run in Docker; live per-card features match training.</text>
   </g>
 
   <!-- Key numbers -->
