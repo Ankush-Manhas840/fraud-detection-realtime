@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 900" width="1720" height="900" role="img" aria-label="The journey of one purchase through the pipeline, in nine numbered steps, from the purchase to the dashboard alert">
+<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1f2633"/></pattern></defs>
+<style>
+text { font-family: -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
+.card { fill: #121722; stroke: #2a3242; stroke-width: 1.2; }
+.code { fill: #0b0f17; stroke: #232b38; }
+.num { fill: #0b0f17; font-size: 17px; font-weight: 800; }
+.title { fill: #f3f4f6; font-size: 17px; font-weight: 700; }
+.where { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.what { fill: #c9d1d9; font-size: 14px; }
+.mono { fill: #9aa4b2; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.alert { fill: #f59e0b; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; font-weight: 700; }
+.flow { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.head { fill: #f3f4f6; font-size: 26px; font-weight: 700; letter-spacing: -0.4px; }
+.sub { fill: #8b95a5; font-size: 15px; }
+</style>
+<rect width="1720" height="900" fill="#0b0f17"/>
+<rect width="1720" height="900" fill="url(#dots)"/>
+<text x="40" y="62" class="head">The journey of one purchase</text>
+<text x="40" y="92" class="sub">Card 254-0 usually spends $45 in the afternoon. Suppose at 3 AM it spends $412 at a new shop. Real card memory, real model score. Follow 1 → 9.</text>
+<path d="M332,194 L377,194" stroke="#a78bfa" class="flow"/>
+<path d="M369,188 L377,194 L369,200" stroke="#a78bfa" class="flow"/>
+<path d="M669,194 L714,194" stroke="#a78bfa" class="flow"/>
+<path d="M706,188 L714,194 L706,200" stroke="#a78bfa" class="flow"/>
+<path d="M1006,194 L1051,194" stroke="#a78bfa" class="flow"/>
+<path d="M1043,188 L1051,194 L1043,200" stroke="#a78bfa" class="flow"/>
+<path d="M1343,194 L1388,194" stroke="#34d399" class="flow"/>
+<path d="M1380,188 L1388,194 L1380,200" stroke="#34d399" class="flow"/>
+<path d="M1534.0,450 L1534.0,540" stroke="#f472b6" class="flow"/>
+<path d="M1528.0,532 L1534.0,540 L1540.0,532" stroke="#f472b6" class="flow"/>
+<path d="M1388,584 L1343,584" stroke="#f59e0b" class="flow"/>
+<path d="M1351,578 L1343,584 L1351,590" stroke="#f59e0b" class="flow"/>
+<path d="M1051,584 L1006,584" stroke="#34d399" class="flow"/>
+<path d="M1014,578 L1006,584 L1014,590" stroke="#34d399" class="flow"/>
+<path d="M714,584 L669,584" stroke="#60a5fa" class="flow"/>
+<path d="M677,578 L669,584 L677,590" stroke="#60a5fa" class="flow"/>
+<rect x="40" y="150" width="292" height="300" rx="12" class="card"/>
+<rect x="40" y="150" width="292" height="4" rx="2" fill="#a78bfa"/>
+<circle cx="70" cy="194" r="17" fill="#a78bfa"/>
+<text x="70" y="200" class="num" text-anchor="middle">1</text>
+<text x="98" y="190" class="title">A purchase happens</text>
+<text x="98" y="210" class="where" fill="#a78bfa">producer.py</text>
+<text x="60" y="250" class="what">Card 254-0 pays $412.00 at 3 AM</text>
+<text x="60" y="271" class="what">at a shop it has never used.</text>
+<rect x="54" y="332" width="264" height="104" rx="8" class="code"/>
+<text x="68" y="355" class="mono">{"user": 254, "card": 0,</text>
+<text x="68" y="377" class="mono"> "amount": 412.0,</text>
+<text x="68" y="399" class="mono"> "timestamp": "...T03:12",</text>
+<text x="68" y="421" class="mono"> "merchant_name": ...}</text>
+<rect x="377" y="150" width="292" height="300" rx="12" class="card"/>
+<rect x="377" y="150" width="292" height="4" rx="2" fill="#a78bfa"/>
+<circle cx="407" cy="194" r="17" fill="#a78bfa"/>
+<text x="407" y="200" class="num" text-anchor="middle">2</text>
+<text x="435" y="190" class="title">Kafka holds it in line</text>
+<text x="435" y="210" class="where" fill="#a78bfa">topic: transactions</text>
+<text x="397" y="250" class="what">The purchase is added to the end</text>
+<text x="397" y="271" class="what">of the topic and gets an offset.</text>
+<rect x="391" y="354" width="264" height="82" rx="8" class="code"/>
+<text x="405" y="377" class="mono">offset = its place in line</text>
+<text x="405" y="399" class="mono">e.g. offset 211042</text>
+<text x="405" y="421" class="mono">waiting for fraud-checker</text>
+<rect x="714" y="150" width="292" height="300" rx="12" class="card"/>
+<rect x="714" y="150" width="292" height="4" rx="2" fill="#a78bfa"/>
+<circle cx="744" cy="194" r="17" fill="#a78bfa"/>
+<text x="744" y="200" class="num" text-anchor="middle">3</text>
+<text x="772" y="190" class="title">The consumer picks it up</text>
+<text x="772" y="210" class="where" fill="#a78bfa">consumer.py</text>
+<text x="734" y="250" class="what">consumer.poll(1) returns the</text>
+<text x="734" y="271" class="what">message; json.loads turns it</text>
+<text x="734" y="292" class="what">back into a dictionary.</text>
+<rect x="728" y="376" width="264" height="60" rx="8" class="code"/>
+<text x="742" y="399" class="mono">message = consumer.poll(1)</text>
+<text x="742" y="421" class="mono">purchase = json.loads(...)</text>
+<rect x="1051" y="150" width="292" height="300" rx="12" class="card"/>
+<rect x="1051" y="150" width="292" height="4" rx="2" fill="#34d399"/>
+<circle cx="1081" cy="194" r="17" fill="#34d399"/>
+<text x="1081" y="200" class="num" text-anchor="middle">4</text>
+<text x="1109" y="190" class="title">Load this card's memory</text>
+<text x="1109" y="210" class="where" fill="#34d399">Redis · load_bag</text>
+<text x="1071" y="250" class="what">Everything the system remembers</text>
+<text x="1071" y="271" class="what">about card 254-0 so far.</text>
+<rect x="1065" y="332" width="264" height="104" rx="8" class="code"/>
+<text x="1079" y="355" class="mono">2,826 past purchases</text>
+<text x="1079" y="377" class="mono">usual amount  $45.39</text>
+<text x="1079" y="399" class="mono">favourite hours 17, 7, 15</text>
+<text x="1079" y="421" class="mono">never bought at 3 AM</text>
+<rect x="1388" y="150" width="292" height="300" rx="12" class="card"/>
+<rect x="1388" y="150" width="292" height="4" rx="2" fill="#f472b6"/>
+<circle cx="1418" cy="194" r="17" fill="#f472b6"/>
+<text x="1418" y="200" class="num" text-anchor="middle">5</text>
+<text x="1446" y="190" class="title">Build the 9 features</text>
+<text x="1446" y="210" class="where" fill="#f472b6">features_from_memory()</text>
+<text x="1408" y="250" class="what">Compare this purchase with the</text>
+<text x="1408" y="271" class="what">card's habits, BEFORE updating</text>
+<text x="1408" y="292" class="what">the memory.</text>
+<rect x="1402" y="310" width="264" height="126" rx="8" class="code"/>
+<text x="1416" y="333" class="mono">amount_vs_usual   9.08</text>
+<text x="1416" y="355" class="mono">new_shop          1</text>
+<text x="1416" y="377" class="mono">new_shop_type     1</text>
+<text x="1416" y="399" class="mono">count_last_hour   3</text>
+<text x="1416" y="421" class="mono">share_same_hour   0.00</text>
+<rect x="1388" y="540" width="292" height="300" rx="12" class="card"/>
+<rect x="1388" y="540" width="292" height="4" rx="2" fill="#f59e0b"/>
+<circle cx="1418" cy="584" r="17" fill="#f59e0b"/>
+<text x="1418" y="590" class="num" text-anchor="middle">6</text>
+<text x="1446" y="580" class="title">The model scores it</text>
+<text x="1446" y="600" class="where" fill="#f59e0b">FastAPI · POST /predict</text>
+<text x="1408" y="640" class="what">Scaler + logistic regression</text>
+<text x="1408" y="661" class="what">give a score between 0 and 1.</text>
+<text x="1408" y="682" class="what">About 10 ms.</text>
+<rect x="1402" y="744" width="264" height="82" rx="8" class="code"/>
+<text x="1416" y="767" class="mono">fraud_score  0.9988</text>
+<text x="1416" y="789" class="mono">threshold    0.9862</text>
+<text x="1416" y="811" class="alert">is_fraud     true</text>
+<rect x="1051" y="540" width="292" height="300" rx="12" class="card"/>
+<rect x="1051" y="540" width="292" height="4" rx="2" fill="#34d399"/>
+<circle cx="1081" cy="584" r="17" fill="#34d399"/>
+<text x="1081" y="590" class="num" text-anchor="middle">7</text>
+<text x="1109" y="580" class="title">Update the memory</text>
+<text x="1109" y="600" class="where" fill="#34d399">update_memory + save_bag</text>
+<text x="1071" y="640" class="what">Add this purchase to the card's</text>
+<text x="1071" y="661" class="what">history so the next purchase is</text>
+<text x="1071" y="682" class="what">compared with it too.</text>
+<rect x="1065" y="744" width="264" height="82" rx="8" class="code"/>
+<text x="1079" y="767" class="mono">shops   + new shop</text>
+<text x="1079" y="789" class="mono">count   2,826 → 2,827</text>
+<text x="1079" y="811" class="mono">hour 3  0 → 1</text>
+<rect x="714" y="540" width="292" height="300" rx="12" class="card"/>
+<rect x="714" y="540" width="292" height="4" rx="2" fill="#60a5fa"/>
+<circle cx="744" cy="584" r="17" fill="#60a5fa"/>
+<text x="744" y="590" class="num" text-anchor="middle">8</text>
+<text x="772" y="580" class="title">Write it down</text>
+<text x="772" y="600" class="where" fill="#60a5fa">SQLite · predictions</text>
+<text x="734" y="640" class="what">Every decision is saved with its</text>
+<text x="734" y="661" class="what">features and how long it took.</text>
+<rect x="728" y="766" width="264" height="60" rx="8" class="code"/>
+<text x="742" y="789" class="mono">INSERT INTO predictions</text>
+<text x="742" y="811" class="mono">score 0.9988, flagged 1</text>
+<rect x="377" y="540" width="292" height="300" rx="12" class="card"/>
+<rect x="377" y="540" width="292" height="4" rx="2" fill="#e8a13a"/>
+<circle cx="407" cy="584" r="17" fill="#e8a13a"/>
+<text x="407" y="590" class="num" text-anchor="middle">9</text>
+<text x="435" y="580" class="title">Show it</text>
+<text x="435" y="600" class="where" fill="#e8a13a">Streamlit dashboard</text>
+<text x="397" y="640" class="what">The alert appears in the live feed</text>
+<text x="397" y="661" class="what">with the reasons it was flagged,</text>
+<text x="397" y="682" class="what">within 3 seconds.</text>
+<rect x="391" y="744" width="264" height="82" rx="8" class="code"/>
+<text x="405" y="767" class="alert">FRAUD ALERT</text>
+<text x="405" y="789" class="mono">new shop · 9× usual amount</text>
+<text x="405" y="811" class="mono">3 purchases in the last hour</text>
+</svg>
