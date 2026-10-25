@@ -1,4 +1,6 @@
-"""Per-user recent-transaction state (dict first, Redis later)."""
+"""Per-card memory for live features, kept in a Python dict or in Redis."""
+import json
+
 import pandas as pd
 
 
@@ -73,13 +75,34 @@ def update_memory(bag, purchase):
     bag["hour_counts"][hour] = bag["hour_counts"].get(hour, 0) + 1
 
 
-class UserState:
-    def update(self, txn):
-        """Record a new transaction for its user."""
-        # TODO (Oct 23): in-memory dict. (Oct 27): move to Redis.
-        raise NotImplementedError
+def save_bag(r, key, bag):
+    """Store a card's memory in Redis as JSON text (sets become lists, times become text)."""
+    text = json.dumps({
+        "shops": [int(s) for s in bag["shops"]],
+        "shop_types": [int(t) for t in bag["shop_types"]],
+        "last_time": None if bag["last_time"] is None else bag["last_time"].isoformat(),
+        "recent_times": [t.isoformat() for t in bag["recent_times"]],
+        "total": float(bag["total"]),
+        "count": int(bag["count"]),
+        "hour_counts": bag["hour_counts"],
+    })
+    r.set(f"card:{key}", text)
 
-    def get_features(self, user):
-        """Return live features (e.g. velocity) for the user."""
-        # TODO (Oct 23 / Oct 27)
-        raise NotImplementedError
+
+def load_bag(r, key):
+    """Read a card's memory from Redis, or an empty memory if the card is not stored yet."""
+    text = r.get(f"card:{key}")
+    if text is None:
+        return empty_card_memory()
+    d = json.loads(text)
+    return {
+        "shops": set(d["shops"]),
+        "shop_types": set(d["shop_types"]),
+        "last_time": None if d["last_time"] is None else pd.Timestamp(d["last_time"]),
+        "recent_times": [pd.Timestamp(t) for t in d["recent_times"]],
+        "total": d["total"],
+        "count": d["count"],
+        "hour_counts": {int(h): c for h, c in d["hour_counts"].items()},
+    }
+
+

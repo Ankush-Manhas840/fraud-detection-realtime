@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 25):** the full real-time path works: a producer sends purchases into Kafka, a consumer reads them, builds the 9 features from each card's memory and calls the FastAPI model. Replaying 180,000 purchases from unseen customers raised 217 alerts and caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). Next: move producer and consumer from the notebook into scripts, then keep card memory in Redis. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 25):** the real-time system runs as separate services: a producer script sends purchases into Kafka, a consumer script loads each card's memory from Redis, builds the 9 features, calls the FastAPI model and saves the memory back. The consumer can stop and restart without losing card history or skipping purchases. Replaying 180,000 purchases from unseen customers caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). Next: a Dockerfile for the API, then monitoring. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -22,8 +22,8 @@ A producer replays purchases in time order into a Kafka topic. A consumer keeps 
 | API | FastAPI, Pydantic, Uvicorn | used |
 | Testing | pytest, FastAPI `TestClient` | used |
 | Config | YAML (`pyyaml`) | used |
-| Streaming | Kafka (via Docker), `confluent-kafka` | running, producer next |
-| Online feature state | Python dict now, Redis (via Docker) next | in progress |
+| Streaming | Kafka (via Docker), `confluent-kafka` | used |
+| Online feature state | Redis (via Docker), `redis-py` | used |
 | Containers (local only) | Docker, Docker Compose | used |
 | Prediction log | SQLite (Python `sqlite3`) | planned |
 | Drift monitoring | Evidently | planned |
@@ -179,7 +179,11 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 - Start API (from the project folder): `.venv\Scripts\python -m uvicorn src.api.main:app --reload`, then open http://127.0.0.1:8000/docs
 - Run tests: `.venv\Scripts\python -m pytest -v`
 - Start Docker services (Kafka + Redis), with Docker Desktop running: `docker compose up -d`
-- Start stream: _TODO_
+- Start the stream (Docker Desktop running, API running, from the project folder):
+  1. `docker compose up -d` (Kafka and Redis)
+  2. `.venv\Scripts\python -m src.streaming.warmup` once, to load every card's history into Redis
+  3. `.venv\Scripts\python -m src.streaming.consumer` in one terminal (waits for purchases)
+  4. `.venv\Scripts\python -m src.streaming.producer` in another terminal (sends purchases; set `START` in the file)
 - Open dashboard: _TODO_
 
 ## API
@@ -220,7 +224,9 @@ Purchases from the 253 unseen customers after the April 2017 cut-off, replayed i
 
 Random alerts on the same volume would find about 0.1 frauds. The live results match the offline evaluation (14 to 20% precision, 31 to 38% recall), which confirms the live features, API and threshold work together. The first 20,000 purchases after the cut-off contained no fraud at all (the first fraud is in November 2017), a reminder that fraud comes in bursts.
 
-Two practical lessons from these runs: opening a new HTTP connection per purchase exhausted Windows' ports after a few thousand requests (`WinError 10048`), fixed by reusing one `requests.Session`; and Kafka keeps a per-reader offset (bookmark), so a consumer that restarts continues where it stopped instead of re-scoring or skipping purchases.
+**Services version.** The same flow now runs as separate programs: `producer.py` sends purchases into Kafka, and `consumer.py` reads them, loads the card's memory from Redis, scores the purchase through the API, and writes the memory back. Before Redis, every consumer start rebuilt memory from 2.6 million purchases (3 to 5 minutes); now memory is loaded once by `warmup.py` and the consumer starts in about 10 seconds (mostly Kafka joining the consumer group). Stopping and restarting the consumer mid-stream continued exactly from its Kafka offset with card history intact.
+
+Lessons from these runs: opening a new HTTP connection per purchase exhausted Windows' ports after a few thousand requests (`WinError 10048`), fixed by reusing one `requests.Session`; Kafka keeps a per-reader offset (bookmark), so a consumer that restarts continues where it stopped instead of re-scoring or skipping purchases; and re-running the producer over the same range sent duplicate purchases, which corrupt card memory (a repeated purchase looks like a known shop with a negative time gap). A production consumer would skip already-seen transaction IDs to make processing idempotent.
 
 ## Results
 Analysis in [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb). Split by time: train on purchases before 25 April 2017 (2.4 million rows, 2,805 frauds), validate on purchases after it (600,000 rows, 616 frauds). Random guessing scores a PR-AUC of about 0.001 and finds about 1 fraud in 1,000 alerts.
@@ -301,8 +307,8 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [x] Simple loop: 180,000 streamed purchases scored through `/predict`
 - [x] Producer sends purchases into Kafka in time order (notebook)
 - [x] Consumer reads Kafka, builds features, calls `/predict` (notebook)
-- [ ] Move producer and consumer into `src/streaming/` scripts
-- [ ] Keep card memory in Redis instead of a Python dictionary
+- [x] Producer and consumer as scripts in `src/streaming/`
+- [x] Card memory in Redis (`save_bag` / `load_bag`), one-time warm-up in `src/streaming/warmup.py`
 - [ ] Dockerfile for the API, so API + Kafka + Redis start together
 
 ### Then
