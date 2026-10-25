@@ -40,7 +40,7 @@ Each box is one part of the system; each coloured wire is one value passing betw
 | Online feature state | Redis (via Docker), `redis-py` | used |
 | Containers (local only) | Docker, Docker Compose | used |
 | Prediction log | SQLite (Python `sqlite3`) | used |
-| Drift monitoring | Evidently | planned |
+| Drift monitoring | Evidently | used |
 | Dashboard | Streamlit (live view + Try it yourself) | used |
 
 Dropped from the original plan: LightGBM and Isolation Forest (XGBoost already showed that a more complex model generalised worse here), SHAP (logistic regression weights explain each score directly) and MLflow (the comparison table below records every model).
