@@ -1,5 +1,7 @@
 # Real-Time Fraud Detection System
 
+[![tests](https://github.com/Ankush-Manhas840/fraud-detection-realtime/actions/workflows/tests.yml/badge.svg)](https://github.com/Ankush-Manhas840/fraud-detection-realtime/actions/workflows/tests.yml)
+
 A small local version of a payment-company fraud pipeline: stream transactions, build live features, score them with a tracked model, explain and monitor every decision.
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
@@ -32,7 +34,7 @@ Each box is one part of the system; each coloured wire is one value passing betw
 | Data | pandas, NumPy, Parquet | used |
 | Models | scikit-learn logistic regression (chosen), XGBoost (compared) | used |
 | API | FastAPI, Pydantic, Uvicorn | used |
-| Testing | pytest, FastAPI `TestClient` | used |
+| Testing | pytest, FastAPI `TestClient`, GitHub Actions CI | used |
 | Config | YAML (`pyyaml`) | used |
 | Streaming | Kafka (via Docker), `confluent-kafka` | used |
 | Online feature state | Redis (via Docker), `redis-py` | used |
@@ -274,6 +276,25 @@ Run it locally while the pipeline is running:
 
 `src/connections.py` decides where to connect: the cloud when Streamlit's Secrets (or `USE_CLOUD=1` with `secrets/secrets.toml` on the laptop) are present, otherwise the local Docker services. Same code in both places. On every restart the card memory is reloaded and the consumer joins a fresh group from the newest message, so purchases are never counted twice. A GitHub Actions job visits the app every 6 hours so it never sleeps.
 
+### Drift report (Evidently)
+
+`python -m src.monitoring.drift` compares 50,000 purchases from the year before the training cut-off with 50,000 after it, and saves [`reports/drift_report.html`](reports/drift_report.html) (download and open in a browser).
+
+| Feature | Drift score | Limit |
+|---|---|---|
+| amount | 0.013 | 0.1 |
+| hour | 0.003 | 0.1 |
+| gap_minutes | 0.017 | 0.1 |
+| count_last_hour | 0.009 | 0.1 |
+| amount_vs_usual | 0.011 | 0.1 |
+| share_same_hour | 0.012 | 0.1 |
+| outside_us | 0.004 | 0.1 |
+| new_shop | 0.012 | 0.1 |
+| new_shop_type | 0.018 | 0.1 |
+| use_chip (not a model feature) | 0.002 | 0.1 |
+
+**No input drifted, and that is the interesting part.** Online purchases stayed just as common after 2017, but online *fraud* fell from 66 to 1.5 per 10,000. That is **concept drift** (the link between an input and fraud changed), not **data drift** (the inputs themselves changed). A data drift check like this one cannot see it by design; it was caught in EDA by tracking the fraud rate per group over time, which is why `use_chip` was left out of the model.
+
 ## Live pipeline runs
 Purchases from the 253 unseen customers after the April 2017 cut-off, replayed in time order. Before scoring, each card's memory is **warmed up** with its purchases before the cut-off, so cards do not start with an empty history (as a real bank would already know them).
 
@@ -373,11 +394,11 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 
 ### Then
 - [x] SQLite prediction log: every scored purchase, its key features, decision and API latency (`src/monitoring/prediction_log.py`)
-- [ ] Evidently drift report
+- [x] Evidently drift report (no data drift; the online-fraud change is concept drift)
 - [x] Streamlit dashboard of live alerts
 - [x] Online deployment (Aiven Kafka, Redis Cloud, Streamlit Community Cloud)
-- [ ] Real feature tests in `tests/test_features.py`
-- [ ] CI: run pytest on every push with GitHub Actions
+- [x] Feature tests, including live features matching training features
+- [x] CI: GitHub Actions runs pytest on every push
 - [ ] Final README, demo GIF
 
 ### Skipped, with reasons

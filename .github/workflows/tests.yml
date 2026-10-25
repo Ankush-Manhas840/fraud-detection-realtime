@@ -1,0 +1,19 @@
+# CI: on every push and pull request, GitHub starts a fresh Linux machine, installs the project and runs pytest.
+# A red cross on the commit means a test failed; a green tick means everything still works.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4              # download the repository
+      - uses: actions/setup-python@v5          # install Python
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-api.txt pytest httpx
+      - run: python -m pytest -v
