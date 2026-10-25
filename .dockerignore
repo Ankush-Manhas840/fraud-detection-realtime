@@ -1,0 +1,9 @@
+.venv
+data
+notebooks
+docs
+tests
+mlruns
+__pycache__
+*.ipynb
+.git

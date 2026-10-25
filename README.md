@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 25):** the real-time system runs as separate services: a producer script sends purchases into Kafka, a consumer script loads each card's memory from Redis, builds the 9 features, calls the FastAPI model and saves the memory back. The consumer can stop and restart without losing card history or skipping purchases. Replaying 180,000 purchases from unseen customers caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). Next: a Dockerfile for the API, then monitoring. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 25):** the real-time system runs as separate services: a producer script sends purchases into Kafka, a consumer script loads each card's memory from Redis, builds the 9 features, calls the FastAPI model and saves the memory back. The consumer can stop and restart without losing card history or skipping purchases. Replaying 180,000 purchases from unseen customers caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). The API runs in its own Docker image, so `docker compose up -d` starts the API, Kafka and Redis together. Next: monitoring. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -176,11 +176,11 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
   new = build_features(clean(load_raw("data/raw/card_transaction.v1.csv", start=3_000_000)))  # next 3M rows
   ```
 - Train: see [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb) (script version coming in `src/train.py`)
-- Start API (from the project folder): `.venv\Scripts\python -m uvicorn src.api.main:app --reload`, then open http://127.0.0.1:8000/docs
+- Start API, Kafka and Redis together (Docker Desktop running): `docker compose up -d` (add `--build` after code changes), then open http://127.0.0.1:8000/docs. Without Docker: `.venv\Scripts\python -m uvicorn src.api.main:app --reload`
 - Run tests: `.venv\Scripts\python -m pytest -v`
 - Start Docker services (Kafka + Redis), with Docker Desktop running: `docker compose up -d`
 - Start the stream (Docker Desktop running, API running, from the project folder):
-  1. `docker compose up -d` (Kafka and Redis)
+  1. `docker compose up -d` (API, Kafka and Redis)
   2. `.venv\Scripts\python -m src.streaming.warmup` once, to load every card's history into Redis
   3. `.venv\Scripts\python -m src.streaming.consumer` in one terminal (waits for purchases)
   4. `.venv\Scripts\python -m src.streaming.producer` in another terminal (sends purchases; set `START` in the file)
@@ -196,6 +196,8 @@ The [dataset page](https://www.kaggle.com/datasets/ealaxi/paysim1) explains why:
 |---|---|---|
 | Suspicious | abroad, new shop, 4 purchases in the last hour, 12 times the usual amount, unusual hour | `{"fraud_score": 0.9999, "is_fraud": true}` |
 | Normal | usual shop and hour, usual amount, a day since the last purchase | `{"fraud_score": 0.0002, "is_fraud": false}` |
+
+**Container.** The `Dockerfile` starts from `python:3.12-slim`, installs only the API's libraries from `requirements-api.txt` (pinned to the versions the model was trained with, so `joblib` loads it identically), copies `src`, `config` and `models`, and runs uvicorn on `0.0.0.0:8000` so it is reachable from outside the container. `.dockerignore` keeps the 2.3 GB data file, `.venv` and notebooks out of the build. Requirements are installed before the code is copied, so code changes rebuild in seconds from Docker's cache.
 
 `tests/test_api.py` checks that `/health` answers and that the suspicious purchase scores higher than the normal one.
 
@@ -309,7 +311,7 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [x] Consumer reads Kafka, builds features, calls `/predict` (notebook)
 - [x] Producer and consumer as scripts in `src/streaming/`
 - [x] Card memory in Redis (`save_bag` / `load_bag`), one-time warm-up in `src/streaming/warmup.py`
-- [ ] Dockerfile for the API, so API + Kafka + Redis start together
+- [x] Dockerfile for the API (`Dockerfile`, `requirements-api.txt`, `.dockerignore`); API, Kafka and Redis start together with `docker compose up -d`
 
 ### Then
 - [ ] SQLite prediction log and an Evidently drift report

@@ -23,3 +23,11 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+
+
+  
+  api:
+    build: .
+    container_name: fraud-api
+    ports:
+      - "8000:8000"
