@@ -63,7 +63,7 @@
     <path class="arrow" d="M224,242 H244" marker-end="url(#head)"/>
     <g transform="translate(248,186)">
       <rect class="card" width="164" height="112" rx="16"/>
-      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="128" height="4" rx="2"/>
       <text class="node" x="18" y="44">2  Stream</text>
       <text class="tool" x="18" y="70">Kafka</text>
       <text class="tool" x="18" y="90">one purchase at a time</text>
@@ -71,7 +71,7 @@
     <path class="arrow" d="M416,242 H436" marker-end="url(#head)"/>
     <g transform="translate(440,186)">
       <rect class="card" width="164" height="112" rx="16"/>
-      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="128" height="4" rx="2"/>
       <text class="node" x="18" y="44">3  Live features</text>
       <text class="tool" x="18" y="70">Redis</text>
       <text class="tool" x="18" y="90">per-card history</text>
@@ -79,15 +79,15 @@
     <path class="arrow" d="M608,242 H628" marker-end="url(#head)"/>
     <g transform="translate(632,186)">
       <rect class="card" width="164" height="112" rx="16"/>
-      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="128" height="4" rx="2"/>
       <text class="node" x="18" y="44">4  Score</text>
-      <text class="tool" x="18" y="70">XGBoost + FastAPI</text>
-      <text class="tool" x="18" y="90">with SHAP reasons</text>
+      <text class="tool" x="18" y="70">LogReg + FastAPI</text>
+      <text class="tool" x="18" y="90">10 ms per purchase</text>
     </g>
     <path class="arrow" d="M800,242 H820" marker-end="url(#head)"/>
     <g transform="translate(824,186)">
       <rect class="card" width="164" height="112" rx="16"/>
-      <rect class="todo" x="18" y="0" width="128" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="128" height="4" rx="2"/>
       <text class="node" x="18" y="44">5  Monitor</text>
       <text class="tool" x="18" y="70">SQLite + Evidently</text>
       <text class="tool" x="18" y="90">drift reports</text>
@@ -95,7 +95,7 @@
     <path class="arrow" d="M992,242 H1012" marker-end="url(#head)"/>
     <g transform="translate(1016,186)">
       <rect class="card" width="128" height="112" rx="16"/>
-      <rect class="todo" x="18" y="0" width="92" height="4" rx="2"/>
+      <rect class="done" x="18" y="0" width="92" height="4" rx="2"/>
       <text class="node" x="18" y="44">6  See</text>
       <text class="tool" x="18" y="70">Streamlit</text>
       <text class="tool" x="18" y="90">dashboard</text>
@@ -133,9 +133,10 @@
     <g transform="translate(56,538)">
       <text class="label" x="0" y="20">Monitoring and dashboard</text>
       <rect class="track" x="244" y="8" width="760" height="14" rx="7"/>
-      <text class="pct" x="1024" y="21">0%</text>
+      <rect class="done" x="244" y="8" width="760" height="14" rx="7"/>
+      <text class="pct" x="1024" y="21">100%</text>
     </g>
-    <text class="note" x="300" y="596">Streaming done: producer and consumer services, card memory in Redis, API in Docker. Monitoring next.</text>
+    <text class="note" x="300" y="596">All stages done and live at fraud-check.streamlit.app: cloud Kafka and Redis, SQLite log, drift report, tests on every push.</text>
   </g>
 
   <!-- Key numbers -->
