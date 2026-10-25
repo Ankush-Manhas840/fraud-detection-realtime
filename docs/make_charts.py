@@ -161,7 +161,7 @@ hbars(
 # 6. Architecture with status
 stages = [("Data", "TabFormer, pandas", "done"), ("Features", "per-card history", "done"),
           ("Model", "logistic regression", "done"), ("API", "FastAPI /predict", "done"),
-          ("Stream", "Kafka + Redis", "next"), ("Monitor", "SQLite + Evidently", "todo"),
+          ("Stream", "Kafka + Redis", "done"), ("Monitor", "SQLite + Evidently", "next"),
           ("Dashboard", "Streamlit", "todo")]
 w, h = 980, 230
 bw, bh, gap, x0, y0 = 120, 92, 18, 24, 92
@@ -180,7 +180,7 @@ for i, (name, tool, st) in enumerate(stages):
     if i < len(stages) - 1:
         ax = x + bw + 3
         body += f'<path class="ref" d="M{ax},{y0 + bh / 2} h{gap - 8}" stroke-width="1.5" fill="none"/><path class="muted" d="M{ax + gap - 8},{y0 + bh / 2 - 4} l6,4 l-6,4 z"/>'
-body += f'<text class="ax t2" x="24" y="{h - 20}">Status as of 20 October 2026.</text>'
+body += f'<text class="ax t2" x="24" y="{h - 20}">Status as of 25 October 2026.</text>'
 (OUT / "architecture.svg").write_text(svg(w, h, "System architecture", "Seven stages from data to dashboard with their status", body), encoding="utf-8")
 
 print("wrote", sorted(p.name for p in OUT.glob("*.svg")))
