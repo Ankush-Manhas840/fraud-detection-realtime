@@ -3,24 +3,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root { --sky-top: #3a1f55; --sky-bottom: #120c1f; --far: #2a1a3d; --building: #2d2638; --window: #1c3a6e; --window-lit: #f8d23c;
-  --kaiju: #0d0a10; --kaiju-hatch: #3b3245; --flame: #f8d23c; --flame-deep: #f0a21f; }
+  --kaiju: #17121c; --kaiju-hatch: #3b3245; --rim: #56cdee; --flame: #f8d23c; --flame-deep: #f0a21f; }
 html, body { margin: 0; background: transparent; font-family: "Space Grotesk", sans-serif; }
 .scene { position: relative; overflow: hidden; height: 400px; margin: 4px 12px 12px 4px; border: 4px solid #0a080c; box-shadow: 9px 9px 0 #e8487f; background: #120c1f; }
 .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scene #fire { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 30%; z-index: 1; }
 .halftone { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(0,0,0,.28) 1.4px, transparent 1.7px); background-size: 8px 8px; }
-.title { position: absolute; left: 3%; top: 6%; z-index: 3; }
+.title { position: absolute; left: 3%; top: 3%; z-index: 3; }
 .kana { font-family: "Dela Gothic One"; color: #f6eedb; font-size: 18px; letter-spacing: .1em; -webkit-text-stroke: 1px #151116; text-shadow: 2px 2px 0 #151116; }
 .name { font-family: "Dela Gothic One"; font-size: clamp(44px, 7vw, 92px); line-height: .9; color: #f8d23c; -webkit-text-stroke: 3px #151116; paint-order: stroke fill; text-shadow: 5px 5px 0 #151116; margin-top: 4px; }
 .sub { margin-top: 10px; display: inline-block; background: #0a080c; color: #f6eedb; padding: 4px 10px; font-weight: 700; font-size: 13px; letter-spacing: .05em; }
-.stat { position: absolute; left: 3%; bottom: 8%; z-index: 4; background: #f6eedb; color: #151116; border: 4px solid #151116; box-shadow: 6px 6px 0 #151116;
-  padding: 10px 18px; transform: rotate(-2deg); max-width: 330px; }
+.stat { position: absolute; left: 3%; bottom: 5%; z-index: 4; background: #f6eedb; color: #151116; border: 4px solid #151116; box-shadow: 6px 6px 0 #151116; padding: 10px 18px; transform: rotate(-2deg); max-width: 330px; }
 .stat b { font-family: "Dela Gothic One"; font-weight: 400; font-size: 46px; color: #e2383c; -webkit-text-stroke: 1.5px #151116; line-height: 1; display: block; }
 .stat span { font-weight: 700; font-size: 14px; }
-.tag { position: absolute; z-index: 4; right: 2%; top: 5%; background: #e2383c; color: #f6eedb; border: 3px solid #151116; padding: 4px 12px;
-  font-family: "Dela Gothic One"; font-size: 14px; transform: rotate(5deg); box-shadow: 4px 4px 0 #151116; }
+.tag { position: absolute; z-index: 4; right: 2%; top: 5%; background: #e2383c; color: #f6eedb; border: 3px solid #151116; padding: 4px 12px; font-family: "Dela Gothic One"; font-size: 14px; transform: rotate(5deg); box-shadow: 4px 4px 0 #151116; }
+@keyframes stamp { to { transform: scale(1) rotate(-6deg); opacity: 1; } }
+@keyframes rise { to { transform: none; opacity: 1; } }
+@keyframes zapx { to { transform: rotate(-12deg) scaleX(1); } }
 .beam-line { stroke-dasharray: 2600; stroke-dashoffset: 2600; }
 .go .beam-line { animation: zap 1.2s cubic-bezier(.2,.8,.2,1) forwards; }
-.go .beam-line.b2 { animation-delay: .2s; }
+.go .beam-line.b2 { animation-delay: .2s; } .go .beam-line.b3 { animation-delay: .4s; }
 @keyframes zap { to { stroke-dashoffset: 0; } }
 .flicker { animation: flick 1.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom; }
 @keyframes flick { from { transform: scaleY(1); } to { transform: scaleY(1.06); } }
@@ -29,10 +31,12 @@ html, body { margin: 0; background: transparent; font-family: "Space Grotesk", s
 @keyframes rise-up { from { transform: translateY(40%); } to { transform: none; } }
 .glow { animation: glow 1.8s ease-in-out infinite alternate; }
 @keyframes glow { from { opacity: .45; } to { opacity: .95; } }
-@media (prefers-reduced-motion: reduce) { .beam-line, .go .beam-line { animation: none; stroke-dashoffset: 0; } .flicker, .glow, .go .kaiju-g { animation: none; } }
+  .beam-line, .go .beam-line { animation: none; stroke-dashoffset: 0; }
+  .flicker, .glow, .go .kaiju-g { animation: none; }
 </style></head><body>
 <div class="scene" id="scene">
   <svg id="city" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+  <canvas id="fire" aria-hidden="true"></canvas>
   <div class="halftone"></div>
   <div class="title"><div class="kana">不正監視 ／ リアルタイム</div><div class="name">FRAUD<br>MONITOR</div>
     <div class="sub">Kafka → Redis → FastAPI → SQLite · live</div></div>
@@ -70,38 +74,95 @@ for (let x = -20; x < 1220; ) {
   x += w - 4;
 }
 
-/* ---- the fraud kaiju: an original giant reptile, rising behind the city ---- */
-// scaled up around its feet; the inner group carries the rising animation
-const kaijuBox = el("g", { transform: "translate(-180 -120) scale(1.2)" });
+/* ---- the fraud kaiju: original ink drawing (head, jaws, scales, hatching, rim light, glowing back plates) ---- */
+const kaijuBox = el("g", { transform: "translate(150 24)" });   // shifted right so the head clears the title
 const kaiju = el("g", { class: "kaiju-g" }, kaijuBox);
-// back spikes first, so the body covers their roots
-const spikeRoots = [[812,176],[826,198],[842,224],[856,252],[869,282],[880,314],[889,348],[896,384],[901,420],[904,456]];
-spikeRoots.forEach(([x, y], i) => {
-  const s = 1 - i * 0.055, tx = x + 46 * s, ty = y - 30 * s;
-  el("path", { d: `M${x - 12} ${y + 6} L${tx - 14} ${ty + 8} L${tx - 2} ${ty + 12} L${tx} ${ty} L${tx + 6} ${ty + 16} L${x + 14} ${y + 22} Z`,
-    stroke: "#151116", "stroke-width": 4, "stroke-linejoin": "round" }, kaiju, "fill: var(--kaiju)");
-});
-const body = "M915 640 L908 470 C912 380 884 300 852 250 C836 222 820 194 802 168 L792 142 C776 116 740 104 700 112 L680 121 L736 140 L690 170 L758 180 C772 204 768 232 762 262 C752 330 762 420 784 640 Z";
-el("path", { d: body, stroke: "#151116", "stroke-width": 5, "stroke-linejoin": "round" }, kaiju, "fill: var(--kaiju)");
-el("path", { d: body, fill: "url(#hatch)", opacity: 0.5 }, kaiju);
-// tail sweeping right
-el("path", { d: "M900 520 C980 540 1060 556 1230 512 L1230 566 C1060 604 976 596 900 590 Z", stroke: "#151116", "stroke-width": 5, "stroke-linejoin": "round" }, kaiju, "fill: var(--kaiju)");
-// arms with claws
-[[768, 272, 0], [784, 316, 14]].forEach(([x, y, o]) => {
-  el("path", { d: `M${x} ${y} C${x - 34} ${y + 12} ${x - 52} ${y + 28} ${x - 62} ${y + 46} l-10 6 l12 0 l-6 10 l12 -6 l2 10 l8 -14 C${x - 34} ${y + 38} ${x - 14} ${y + 30} ${x + 12} ${y + 30} Z`,
-    stroke: "#151116", "stroke-width": 4, "stroke-linejoin": "round" }, kaiju, "fill: var(--kaiju)");
-});
-// teeth along both jaws
-for (let i = 0; i < 5; i++) {
-  const ux = 690 + i * 10, uy = 124 + i * 3.4;
-  el("path", { d: `M${ux} ${uy} l5 10 l4 -9 z`, fill: "#f6eedb", stroke: "#151116", "stroke-width": 1.5 }, kaiju);
-  const lx = 698 + i * 11, ly = 168 + i * 2;
-  el("path", { d: `M${lx} ${ly} l5 -10 l4 9 z`, fill: "#f6eedb", stroke: "#151116", "stroke-width": 1.5 }, kaiju);
+{
+  // textures: scales, cross-hatching for shadow, glow gradients, a soft glow filter
+  const scales = el("pattern", { id: "scales", width: 16, height: 12, patternUnits: "userSpaceOnUse" }, defs);
+  el("path", { d: "M0 12 Q8 1 16 12 M-8 6 Q0 -5 8 6 M8 6 Q16 -5 24 6", fill: "none", "stroke-width": 1.3 }, scales, "stroke: var(--kaiju-hatch)");
+  const cross = el("pattern", { id: "cross", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(-30)" }, defs);
+  el("path", { d: "M0 0 L0 6 M3 0 L3 6", "stroke-width": 1.4, stroke: "#151116" }, cross);
+  const shade = el("linearGradient", { id: "shadeGrad", x1: 0, y1: 0, x2: 1, y2: 0.4 }, defs);
+  el("stop", { offset: "0.35", "stop-color": "#000" }, shade);
+  el("stop", { offset: "0.8", "stop-color": "#fff" }, shade);
+  const mask = el("mask", { id: "shadeM" }, defs);
+  el("rect", { x: 560, y: 0, width: 700, height: 640, fill: "url(#shadeGrad)" }, mask);
+  const plate = el("linearGradient", { id: "plateGlow", x1: 0, y1: 1, x2: 0, y2: 0 }, defs);
+  el("stop", { offset: "0", "stop-color": "#1c2f6b" }, plate);
+  el("stop", { offset: "0.55", "stop-color": "#2f8fd8" }, plate);
+  el("stop", { offset: "1", "stop-color": "#b8f2ff" }, plate);
+  const blur = el("filter", { id: "glowF", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+  el("feGaussianBlur", { stdDeviation: 9 }, blur);
+  const throat = el("radialGradient", { id: "throatGlow", cx: "85%", cy: "45%", r: "70%" }, defs);
+  el("stop", { offset: "0", "stop-color": "#eafcff" }, throat);
+  el("stop", { offset: "0.35", "stop-color": "#56cdee" }, throat);
+  el("stop", { offset: "1", "stop-color": "#5a1030" }, throat);
+
+  // the back line as cubic curves; plates stand along it in three rows
+  const back = [[[800,118],[850,120],[900,160],[940,205]], [[940,205],[990,255],[1060,320],[1140,370]], [[1140,370],[1180,392],[1210,410],[1240,424]]];
+  const bez = (c, t) => [0, 1].map((k) => (1-t)**3*c[0][k] + 3*(1-t)**2*t*c[1][k] + 3*(1-t)*t*t*c[2][k] + t**3*c[3][k]);
+  const tangent = (c, t) => [0, 1].map((k) => 3*(1-t)**2*(c[1][k]-c[0][k]) + 6*(1-t)*t*(c[2][k]-c[1][k]) + 3*t*t*(c[3][k]-c[2][k]));
+  function leaf(x, y, ang, h, w) {   // a jagged plate, standing on the back and pointing outwards
+    const pts = [[-w/2,0],[-w*0.42,-h*0.35],[-w*0.62,-h*0.42],[-w*0.3,-h*0.62],[-w*0.4,-h*0.72],[-w*0.06,-h*0.84],[0,-h],[w*0.1,-h*0.8],[w*0.36,-h*0.74],[w*0.22,-h*0.55],[w*0.5,-h*0.46],[w*0.3,-h*0.3],[w/2,0]];
+    const c = Math.cos(ang), sn = Math.sin(ang);
+    return "M" + pts.map(([px, py]) => `${(x + px*c - py*sn).toFixed(1)} ${(y + px*sn + py*c).toFixed(1)}`).join(" L") + " Z";
+  }
+  const along = [];
+  back.forEach((c, i) => { for (let t = 0.12; t < 1; t += i === 0 ? 0.3 : 0.24) along.push([c, t, i]); });
+  const rows = [{ shift: -14, scale: 0.6 }, { shift: 16, scale: 0.72 }, { shift: 0, scale: 1 }];   // back rows first, front row last
+  const plates = [];
+  rows.forEach((row) => {
+    along.forEach(([c, t, i]) => {
+      const [x, y] = bez(c, t), [dx, dy] = tangent(c, t);
+      const ang = Math.atan2(dy, dx);
+      const size = (i === 0 ? 0.55 + t * 0.5 : i === 1 ? 1.05 - t * 0.25 : 0.7 - t * 0.35) * row.scale;
+      plates.push(leaf(x + row.shift * 0.5, y - row.shift * 0.2, ang, 120 * size, 64 * size));
+    });
+  });
+  plates.forEach((d) => el("path", { d, fill: "#56cdee", filter: "url(#glowF)", opacity: 0.55, class: "glow" }, kaiju));
+  plates.forEach((d) => el("path", { d, fill: "url(#plateGlow)", stroke: "#151116", "stroke-width": 3.5, "stroke-linejoin": "round" }, kaiju));
+
+  // body: head with open jaws, throat, chest and back
+  const body = "M636 186 C645 168 668 156 700 146 C730 136 760 122 800 118 C850 120 900 160 940 205 C990 255 1060 320 1140 370 C1180 392 1210 410 1240 424 L1240 640 L780 640 C772 520 770 420 768 360 C766 320 760 290 748 268 C730 274 700 276 676 268 C662 264 652 258 650 250 L738 216 L700 206 C672 200 652 196 640 192 Z";
+  const clip = el("clipPath", { id: "bodyClip" }, defs);
+  el("path", { d: body }, clip);
+  el("path", { d: body }, kaiju, "fill: var(--kaiju)");
+  const inside = el("g", { "clip-path": "url(#bodyClip)" }, kaiju);
+  el("rect", { x: 560, y: 80, width: 700, height: 560, fill: "url(#scales)", opacity: 0.85 }, inside);
+  el("rect", { x: 560, y: 80, width: 700, height: 560, fill: "url(#cross)", mask: "url(#shadeM)", opacity: 0.55 }, inside);
+  el("path", { d: body, fill: "none", "stroke-width": 16, opacity: 0.85 }, inside, "stroke: var(--rim)");   // rim light along every edge
+  ["M752 300 C790 286 830 290 868 310", "M760 336 C800 322 846 330 884 352", "M764 376 C806 366 852 374 892 396", "M770 418 C812 410 858 420 900 440",
+   "M820 170 C800 200 790 230 792 262", "M880 210 C860 250 852 290 858 330", "M760 150 C780 170 800 200 808 236"]
+    .forEach((d) => el("path", { d, fill: "none", stroke: "#151116", "stroke-width": 2.6, "stroke-linecap": "round" }, inside));
+  for (let i = 0; i < 6; i++) {   // cheek spikes
+    const x = 752 + i * 14, y = 176 + i * 9;
+    el("path", { d: `M${x} ${y} l12 -10 l-2 14 z`, stroke: "#151116", "stroke-width": 2 }, kaiju, "fill: var(--kaiju)");
+  }
+  el("path", { d: body, fill: "none", stroke: "#151116", "stroke-width": 5, "stroke-linejoin": "round" }, kaiju);
+
+  // mouth: glowing throat, tongue, two rows of teeth
+  el("path", { d: "M641 193 L736 216 L652 248 Z", fill: "url(#throatGlow)", stroke: "#151116", "stroke-width": 3, "stroke-linejoin": "round" }, kaiju);
+  el("path", { d: "M664 238 C690 226 712 222 732 218 C716 230 690 240 668 244 Z", fill: "#e8487f", stroke: "#151116", "stroke-width": 2 }, kaiju);
+  for (let i = 0; i < 8; i++) {
+    const t = i / 8, ux = 643 + t * 88, uy = 193 + t * 22, h = 13 - i * 0.7;
+    el("path", { d: `M${ux} ${uy} L${ux + 4} ${uy + h} L${ux + 9} ${uy + 1}`, fill: "#f6eedb", stroke: "#151116", "stroke-width": 1.6, "stroke-linejoin": "round" }, kaiju);
+    const lx = 654 + t * 78, ly = 247 - t * 29, lh = 11 - i * 0.6;
+    el("path", { d: `M${lx} ${ly} L${lx + 4} ${ly - lh} L${lx + 9} ${ly - 1}`, fill: "#f6eedb", stroke: "#151116", "stroke-width": 1.6, "stroke-linejoin": "round" }, kaiju);
+  }
+  // nostril, eye glow, eye, heavy brow
+  el("path", { d: "M648 176 q6 -4 10 1", fill: "none", stroke: "#151116", "stroke-width": 3, "stroke-linecap": "round" }, kaiju);
+  el("ellipse", { cx: 735, cy: 152, rx: 16, ry: 8, fill: "#e2383c", filter: "url(#glowF)", class: "glow" }, kaiju);
+  el("path", { d: "M720 154 Q735 143 752 150 Q737 160 720 154 Z", fill: "#f8d23c", stroke: "#151116", "stroke-width": 2.5 }, kaiju);
+  el("circle", { cx: 737, cy: 152, r: 3.2, fill: "#151116" }, kaiju);
+  el("path", { d: "M708 146 C724 132 748 130 768 140", fill: "none", stroke: "#151116", "stroke-width": 5, "stroke-linecap": "round" }, kaiju);
+
+  // clawed arm reaching forward
+  const arm = "M800 430 C772 440 748 452 730 470 L716 482 L722 486 L710 498 L722 496 L716 510 L730 500 L734 512 L742 496 C760 486 786 476 812 470 Z";
+  el("path", { d: arm, stroke: "#151116", "stroke-width": 4, "stroke-linejoin": "round" }, kaiju, "fill: var(--kaiju)");
+  el("path", { d: "M790 446 C770 454 754 464 742 476", fill: "none", "stroke-width": 5 }, kaiju, "stroke: var(--rim)");
+  el("path", { d: arm, fill: "none", stroke: "#151116", "stroke-width": 4, "stroke-linejoin": "round" }, kaiju);
 }
-// mouth glow, eye
-el("path", { d: "M690 128 L734 141 L696 165 Z", fill: "#56cdee", class: "glow" }, kaiju);
-el("ellipse", { cx: 764, cy: 129, rx: 10, ry: 6, fill: "#f6eedb", stroke: "#151116", "stroke-width": 2.5 }, kaiju);
-el("circle", { cx: 761, cy: 129, r: 3, fill: "#e2383c" }, kaiju);
 
 /* ---- beams: the kaiju's breath, and searchlights ---- */
 function beam(x1, y1, x2, y2, cls, w = 1) {
@@ -110,7 +171,7 @@ function beam(x1, y1, x2, y2, cls, w = 1) {
   el("line", { x1, y1, x2, y2, stroke: "#eafcff", "stroke-width": 3 * w, "stroke-linecap": "round", class: "beam-line " + cls });
 }
 beam(1240, 40, 160, 600, "b2", 0.7);
-beam(660, 55, 300, -80, "", 1.8);          // the breath, scaled mouth position
+beam(812, 238, 470, -80, "", 1.8);         // the breath, from the open jaws
 
 /* ---- falling lattice tower ---- */
 const tower = el("g", { transform: "translate(150 595) rotate(-22)" });
@@ -135,25 +196,95 @@ for (let x = 250; x < 1240; ) {
   x += w + 10 + rnd() * 40;
 }
 
-/* ---- flames ---- */
-const flames = el("g", { class: "flicker" });
-function fireRow(minH, maxH, minW, maxW) {
-  let x = -40, d = "M-40 610";
-  while (x < 1240) {
-    const w = minW + rnd() * (maxW - minW), h = minH + rnd() * (maxH - minH);
-    const curl = (rnd() - 0.5) * w * 1.4, tipX = x + w / 2 + curl, tipY = 600 - h;
-    d += ` C${x + w * 0.1} ${600 - h * 0.45} ${tipX - curl * 1.4} ${tipY + h * 0.35} ${tipX} ${tipY}`;
-    d += ` C${tipX - curl * 0.3} ${tipY + h * 0.4} ${x + w * 0.95} ${600 - h * 0.3} ${x + w} 600`;
-    x += w * (0.7 + rnd() * 0.25);
-  }
-  return d + " L1240 610 Z";
-}
-el("path", { d: fireRow(70, 190, 50, 110), stroke: "#151116", "stroke-width": 5, "stroke-linejoin": "round" }, flames, "fill: var(--flame-deep)");
-el("path", { d: fireRow(35, 105, 40, 80), stroke: "#151116", "stroke-width": 3.5, "stroke-linejoin": "round" }, flames, "fill: var(--flame)");
+/* ---- sparks ---- */
 for (let i = 0; i < 26; i++) {
   const x = rnd() * 1200, y = 230 + rnd() * 300, s = 4 + rnd() * 8;
   el("path", { d: `M${x} ${y} l${s} ${s / 3} l${-s / 2} ${s} z`, fill: rnd() > 0.5 ? "#f6eedb" : "#e2383c", stroke: "#151116", "stroke-width": 1.5 });
 }
 
+/* ---- fire: the Doom fire simulation decides where heat is; it is drawn as ink-outlined comic flames, on twos (12 frames a second) ---- */
+const fire = document.getElementById("fire");
+const fctx = fire.getContext("2d");
+const FW = 90, FH = 56, HOT = 36;
+const heat = new Uint8Array(FW * FH);
+function feed() {   // bottom row is the heat source; it flickers so flame heights vary
+  for (let x = 0; x < FW; x++) heat[(FH - 1) * FW + x] = Math.random() < 0.8 ? HOT : HOT - 14;
+}
+function spread() {   // heat rises one row, cools a little at random, drifts with the wind
+  for (let x = 0; x < FW; x++)
+    for (let y = 1; y < FH; y++) {
+      const src = y * FW + x, v = heat[src], r = Math.round(Math.random() * 3) & 3;
+      const dst = src - r + 1 - FW;
+      if (dst >= 0) heat[dst] = v === 0 ? 0 : Math.max(0, v - (Math.random() < 0.7 ? 1 : 0));
+    }
+}
+function heights(threshold) {   // for every column: how high the heat above this threshold reaches (0 to 1)
+  const h = new Float32Array(FW);
+  for (let x = 0; x < FW; x++) {
+    let y = 0;
+    while (y < FH && heat[y * FW + x] < threshold) y++;
+    h[x] = (FH - y) / FH;
+  }
+  return h;
+}
+const dots = document.createElement("canvas");   // halftone dots, like printed comics
+dots.width = dots.height = 8;
+{ const d = dots.getContext("2d"); d.fillStyle = "rgba(21,17,22,.35)"; d.beginPath(); d.arc(4, 4, 1.5, 0, 7); d.fill(); }
+const COLORS = { light: ["#e2383c", "#f0a21f", "#f8d23c", "#fff6d8"], dark: ["#1c3a8a", "#2f8fd8", "#56cdee", "#eafcff"] };
+function size() {
+  const r = fire.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  fire.width = Math.max(1, Math.round(r.width * dpr)); fire.height = Math.max(1, Math.round(r.height * dpr));
+}
+new ResizeObserver(() => { size(); draw(); }).observe(fire);
+size();
+// each layer gets its own fixed, uneven split into tongues, and each tongue its own curl direction
+const layouts = [10, 7, 6, 5].map((avg, layer) => {
+  const segs = []; let x = 0, n = 0;
+  while (x < FW) { const w = Math.max(3, Math.round(avg * (0.6 + rnd() * 0.9))); segs.push([x, Math.min(FW, x + w), rnd() < 0.5 ? -1 : 1, 0.75 + rnd() * 0.5]); x += w; n++; }
+  return segs;
+});
+function tongues(h, W, H, segs, lean) {   // column heights become curling, brush-like flame tongues
+  const path = new Path2D();
+  path.moveTo(0, H);
+  segs.forEach(([c0, c1, curl, tall]) => {
+    let tip = 0;
+    for (let k = c0; k < c1; k++) tip = Math.max(tip, h[k]);
+    tip = Math.min(1, tip * tall);
+    const x0 = (c0 / FW) * W, x1 = (c1 / FW) * W, w = x1 - x0, th = tip * H;
+    const bend = (curl * 0.55 + lean) * w;
+    const tipX = x0 + w / 2 + bend, tipY = H - th, valley = H - th * 0.22;
+    path.lineTo(x0, valley);
+    path.bezierCurveTo(x0 + w * 0.05, H - th * 0.55, tipX - bend * 1.6, tipY + th * 0.3, tipX, tipY);
+    path.bezierCurveTo(tipX - bend * 0.4, tipY + th * 0.35, x1 - w * 0.08, H - th * 0.42, x1, valley);
+  });
+  path.lineTo(W, H);
+  path.closePath();
+  return path;
+}
+function draw() {
+  const W = fire.width, H = fire.height, ink = Math.max(2, W / 400);
+  const colors = COLORS[isDark() ? "dark" : "light"];
+  const lean = Math.sin(performance.now() / 900) * 0.35;
+  fctx.clearRect(0, 0, W, H);
+  fctx.lineJoin = "round";
+  [4, 12, 20, 29].forEach((threshold, layer) => {
+    const path = tongues(heights(threshold), W, H, layouts[layer], lean);
+    fctx.fillStyle = colors[layer];
+    fctx.fill(path);
+    if (layer < 2) { fctx.save(); fctx.clip(path); fctx.fillStyle = fctx.createPattern(dots, "repeat"); fctx.fillRect(0, 0, W, H); fctx.restore(); }
+    fctx.strokeStyle = "#151116"; fctx.lineWidth = ink * (layer === 0 ? 1.6 : 1.1);
+    fctx.stroke(path);
+  });
+}
+for (let i = 0; i < FH; i++) { feed(); spread(); }
+let last = 0;
+function loop(t) {
+  if (t - last > 83) { feed(); spread(); draw(); last = t; }   // on twos: 12 drawings a second
+  requestAnimationFrame(loop);
+}
+if (reduce) draw(); else requestAnimationFrame(loop);
+
+
+function isDark() { return true; }
 scene.classList.add('go');
 </script></body></html>
