@@ -4,7 +4,7 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
-**Status (Oct 23):** the chosen model (logistic regression on 9 features, 177 real frauds in its top 1,000 alerts on unseen people) is served by a tested FastAPI app. Streaming has started: Kafka and Redis run in Docker, and the live per-card memory reproduces the training features on all 5,011 purchases of a test card ([details](#live-features)). Next: warm-up from history, then a loop that scores streamed purchases through the API. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
+**Status (Oct 25):** the full real-time path works: a producer sends purchases into Kafka, a consumer reads them, builds the 9 features from each card's memory and calls the FastAPI model. Replaying 180,000 purchases from unseen customers raised 217 alerts and caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). Next: move producer and consumer from the notebook into scripts, then keep card memory in Redis. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
 
@@ -209,8 +209,20 @@ Features are always computed **before** the memory is updated, the live version 
 
 **Training-serving check:** replaying all 5,011 purchases of user 0, card 0 one by one through these functions reproduced the training features from `src/features.py` exactly for 5 features and within floating-point rounding for `amount_vs_usual` (100% with `np.isclose`). So the model receives the same inputs live as it learned from.
 
-## Results
+## Live pipeline runs
 
+Purchases from the 253 unseen customers after the April 2017 cut-off, replayed in time order. Before scoring, each card's memory is **warmed up** with its purchases before the cut-off, so cards do not start with an empty history (as a real bank would already know them).
+
+| Run | Path | Purchases | Alerts | Frauds caught | Precision / recall |
+|---|---|---|---|---|---|
+| Direct loop | table → memory → `/predict` | 180,000 | 217 | 33 of 78 | 15% / 42% |
+| Through Kafka | producer → Kafka → consumer → `/predict` | 10,000 | 15 | 3 of 9 | 20% / 33% |
+
+Random alerts on the same volume would find about 0.1 frauds. The live results match the offline evaluation (14 to 20% precision, 31 to 38% recall), which confirms the live features, API and threshold work together. The first 20,000 purchases after the cut-off contained no fraud at all (the first fraud is in November 2017), a reminder that fraud comes in bursts.
+
+Two practical lessons from these runs: opening a new HTTP connection per purchase exhausted Windows' ports after a few thousand requests (`WinError 10048`), fixed by reusing one `requests.Session`; and Kafka keeps a per-reader offset (bookmark), so a consumer that restarts continues where it stopped instead of re-scoring or skipping purchases.
+
+## Results
 Analysis in [`notebooks/03_modeling.ipynb`](notebooks/03_modeling.ipynb). Split by time: train on purchases before 25 April 2017 (2.4 million rows, 2,805 frauds), validate on purchases after it (600,000 rows, 616 frauds). Random guessing scores a PR-AUC of about 0.001 and finds about 1 fraud in 1,000 alerts.
 
 Models 1 to 4 are logistic regression with `class_weight="balanced"` in a scikit-learn pipeline (scaling for numbers, one-hot encoding for categories). XGBoost is compared [further down](#per-card-history-features-and-the-final-choice).
@@ -285,10 +297,12 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 ### Next
 - [x] Docker set up, `docker compose up -d` runs Kafka and Redis
 - [x] Live per-card memory in `src/streaming/state.py`, matching the training features
-- [ ] Warm-up: load each card's history before the cut-off into memory
-- [ ] Simple loop: score streamed purchases through `/predict`
-- [ ] Producer replays purchases into Kafka in time order
-- [ ] Consumer builds features from Redis state and calls `/predict`
+- [x] Warm-up: load each card's history before the cut-off into memory
+- [x] Simple loop: 180,000 streamed purchases scored through `/predict`
+- [x] Producer sends purchases into Kafka in time order (notebook)
+- [x] Consumer reads Kafka, builds features, calls `/predict` (notebook)
+- [ ] Move producer and consumer into `src/streaming/` scripts
+- [ ] Keep card memory in Redis instead of a Python dictionary
 - [ ] Dockerfile for the API, so API + Kafka + Redis start together
 
 ### Then
