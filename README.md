@@ -25,7 +25,7 @@ A producer replays purchases in time order into a Kafka topic. A consumer keeps 
 | Streaming | Kafka (via Docker), `confluent-kafka` | used |
 | Online feature state | Redis (via Docker), `redis-py` | used |
 | Containers (local only) | Docker, Docker Compose | used |
-| Prediction log | SQLite (Python `sqlite3`) | planned |
+| Prediction log | SQLite (Python `sqlite3`) | used |
 | Drift monitoring | Evidently | planned |
 | Dashboard | Streamlit | planned |
 
@@ -215,8 +215,30 @@ Features are always computed **before** the memory is updated, the live version 
 
 **Training-serving check:** replaying all 5,011 purchases of user 0, card 0 one by one through these functions reproduced the training features from `src/features.py` exactly for 5 features and within floating-point rounding for `amount_vs_usual` (100% with `np.isclose`). So the model receives the same inputs live as it learned from.
 
-## Live pipeline runs
+## Monitoring
 
+The consumer writes every scored purchase to `predictions.db` (SQLite, one file, kept out of git): time, card, amount, score, decision, true label, five key features and the API round-trip time. The system is then monitored with plain SQL, for example:
+
+```sql
+SELECT COUNT(*) AS purchases, SUM(flagged) AS alerts,
+       SUM(flagged * is_fraud) AS frauds_caught, SUM(is_fraud) AS frauds_total
+FROM predictions;
+
+SELECT SUBSTR(ts, 1, 13) AS hour, COUNT(*) AS purchases, AVG(score) AS avg_score, SUM(flagged) AS alerts
+FROM predictions GROUP BY hour ORDER BY hour;
+```
+
+On a 1,000-purchase run the API answered in **10 ms on average** (the 1.1 s maximum was the first, connection-opening request).
+
+**Replaying the stream cleanly** (memory must match the point in the stream being replayed):
+1. `docker compose up -d`
+2. `.venv\Scripts\python -m src.streaming.warmup` (resets every card's memory in Redis; run before every replay)
+3. delete `predictions.db`
+4. start the consumer, then the producer with the right `START`, and move `START` forward after sending
+
+Sending the same purchases twice corrupts card memory: a repeated purchase looks like a known shop with no time gap, so real frauds score lower and are missed. In one such accidental replay, all three frauds of card 307-1 dropped below the threshold (0.987 → 0.929 for the purchase that was caught the first time). Production consumers avoid this by skipping transaction IDs they have already processed.
+
+## Live pipeline runs
 Purchases from the 253 unseen customers after the April 2017 cut-off, replayed in time order. Before scoring, each card's memory is **warmed up** with its purchases before the cut-off, so cards do not start with an empty history (as a real bank would already know them).
 
 | Run | Path | Purchases | Alerts | Frauds caught | Precision / recall |
@@ -314,7 +336,8 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [x] Dockerfile for the API (`Dockerfile`, `requirements-api.txt`, `.dockerignore`); API, Kafka and Redis start together with `docker compose up -d`
 
 ### Then
-- [ ] SQLite prediction log and an Evidently drift report
+- [x] SQLite prediction log: every scored purchase, its key features, decision and API latency (`src/monitoring/prediction_log.py`)
+- [ ] Evidently drift report
 - [ ] Streamlit dashboard of live alerts
 - [ ] Real feature tests in `tests/test_features.py`
 - [ ] CI: run pytest on every push with GitHub Actions
