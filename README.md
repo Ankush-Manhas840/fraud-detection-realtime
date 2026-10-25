@@ -4,6 +4,8 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
+**▶ Live demo: [huggingface.co/spaces/AnkushManhas840/fraud-detection](https://huggingface.co/spaces/AnkushManhas840/fraud-detection)**: purchases stream through Kafka, Redis and the model in real time, and you can build your own purchase for a real card and see the model score it.
+
 **Status (Oct 25):** the real-time system runs as separate services: a producer script sends purchases into Kafka, a consumer script loads each card's memory from Redis, builds the 9 features, calls the FastAPI model and saves the memory back. The consumer can stop and restart without losing card history or skipping purchases. Replaying 180,000 purchases from unseen customers caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). The API runs in its own Docker image, so `docker compose up -d` starts the API, Kafka and Redis together. Next: monitoring. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
 
 ## Architecture
@@ -27,7 +29,7 @@ A producer replays purchases in time order into a Kafka topic. A consumer keeps 
 | Containers (local only) | Docker, Docker Compose | used |
 | Prediction log | SQLite (Python `sqlite3`) | used |
 | Drift monitoring | Evidently | planned |
-| Dashboard | Streamlit | planned |
+| Dashboard | Streamlit (live view + Try it yourself), Hugging Face Spaces | used |
 
 Dropped from the original plan: LightGBM and Isolation Forest (XGBoost already showed that a more complex model generalised worse here), SHAP (logistic regression weights explain each score directly) and MLflow (the comparison table below records every model).
 ## Dataset
@@ -238,6 +240,23 @@ On a 1,000-purchase run the API answered in **10 ms on average** (the 1.1 s maxi
 
 Sending the same purchases twice corrupts card memory: a repeated purchase looks like a known shop with no time gap, so real frauds score lower and are missed. In one such accidental replay, all three frauds of card 307-1 dropped below the threshold (0.987 → 0.929 for the purchase that was caught the first time). Production consumers avoid this by skipping transaction IDs they have already processed.
 
+## Dashboard and live demo
+
+`dashboard/app.py` is a Streamlit page that reads the prediction log every 3 seconds:
+- headline result, purchases checked, alerts, frauds caught and average latency
+- purchases and alerts per hour
+- the latest alerts, and for any alert *why* it was flagged (new shop, outside the US, purchases in the last hour, amount compared with usual)
+- **Try it yourself:** pick a real card, see its habits from Redis, change a purchase and send it to the FastAPI model. This is a *what-if* tool: you set values like "purchases in the last hour" yourself, while in the live stream they come from the card's memory.
+
+Run it locally while the pipeline is running:
+```
+.venv\Scripts\python -m streamlit run dashboard/app.py
+```
+
+**Online version (Hugging Face Spaces).** The free Space runs one container, so `deploy/Dockerfile` puts every piece in one image and `deploy/start.sh` starts them in order: Redis, Kafka (single node), card memory loaded into Redis, FastAPI, consumer, producer, Streamlit. The code is the same as the local `docker compose` version; only the packaging differs.
+- `deploy/prepare_data.py` builds the two small files the server needs (595 card memories, 50,000 purchases to replay with 62 frauds), so the 2 GB raw CSV never leaves the laptop.
+- `deploy/replay.py` sends one purchase per second. When it reaches the end it resets the card memory and the log before starting again, so purchases are never counted twice (the [duplicate lesson](#monitoring)).
+
 ## Live pipeline runs
 Purchases from the 253 unseen customers after the April 2017 cut-off, replayed in time order. Before scoring, each card's memory is **warmed up** with its purchases before the cut-off, so cards do not start with an empty history (as a real bank would already know them).
 
@@ -338,7 +357,7 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 ### Then
 - [x] SQLite prediction log: every scored purchase, its key features, decision and API latency (`src/monitoring/prediction_log.py`)
 - [ ] Evidently drift report
-- [ ] Streamlit dashboard of live alerts
+- [x] Streamlit dashboard of live alerts, deployed on Hugging Face Spaces
 - [ ] Real feature tests in `tests/test_features.py`
 - [ ] CI: run pytest on every push with GitHub Actions
 - [ ] Final README, demo GIF
