@@ -6,15 +6,14 @@ import json
 import sqlite3
 from pathlib import Path
 
-import redis
-
-from src.monitoring.prediction_log import DB_PATH, init_db
+from src.connections import redis_client
+from src.monitoring.prediction_log import init_db
 
 DATA = Path(__file__).resolve().parent / "data"
 
 
 def seed():
-    r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+    r = redis_client()
     items = json.loads((DATA / "card_memory.json").read_text())
     r.flushdb()
     r.mset(items)

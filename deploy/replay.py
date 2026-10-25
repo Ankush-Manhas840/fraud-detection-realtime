@@ -9,6 +9,7 @@ import pandas as pd
 from confluent_kafka import Producer
 
 from deploy.seed import seed
+from src.connections import kafka_config
 
 STREAM = Path(__file__).resolve().parent / "data" / "stream.csv.gz"
 SECONDS_BETWEEN = 1.0
@@ -16,7 +17,7 @@ SECONDS_BETWEEN = 1.0
 
 def main():
     stream = pd.read_csv(STREAM, parse_dates=["timestamp"])
-    producer = Producer({"bootstrap.servers": "localhost:9092"})
+    producer = Producer(kafka_config())
     while True:
         for _, purchase in stream.iterrows():
             producer.produce("transactions", value=purchase.to_json(date_format="iso"))

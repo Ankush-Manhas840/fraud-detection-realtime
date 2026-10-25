@@ -4,6 +4,8 @@ Locally it reads predictions.db (live, written by the consumer).
 Online (Streamlit Cloud) there is no database, so it reads the saved snapshot dashboard/snapshot.csv.
 """
 import sqlite3
+import threading
+import time
 import sys
 from pathlib import Path
 
@@ -16,6 +18,7 @@ import streamlit as st
 import redis
 import requests
 
+from src.connections import load_secrets, redis_client
 from src.streaming.state import load_bag
 
 DB_PATH = ROOT / "predictions.db"
@@ -25,6 +28,35 @@ ORANGE, BLACK, GREEN, BROWN, CREAM = "#E8A13A", "#1a1a1a", "#4A6B3A", "#7A4A2A",
 BROWN_LIGHT = "#C27A45"
 
 st.set_page_config(page_title="Fraud Monitor", page_icon="🌲", layout="wide")
+
+
+@st.cache_resource
+def start_pipeline():
+    """Online only: start the API, the consumer and the producer as background threads, once per server.
+
+    Kafka (Aiven) and Redis (Redis Cloud) run as cloud services; everything else runs inside this app.
+    """
+    import uvicorn
+    from deploy.replay import main as replay
+    from deploy.seed import seed
+    from src.streaming.consumer import main as consume
+
+    server = uvicorn.Server(uvicorn.Config("src.api.main:app", host="127.0.0.1", port=8000, log_level="warning"))
+    threading.Thread(target=server.run, daemon=True).start()
+    while not server.started:
+        time.sleep(0.2)
+    seed()   # fresh card memory and an empty log, so a restart never counts purchases twice
+    # a new consumer group that starts at the newest message, so old messages from before a restart are skipped
+    group = f"web-{int(time.time())}"
+    threading.Thread(target=consume, args=(group, "latest"), daemon=True).start()
+    time.sleep(15)   # give the consumer time to join before purchases start
+    threading.Thread(target=replay, daemon=True).start()
+    return True
+
+
+if load_secrets() is not None:
+    with st.spinner("Starting the pipeline: API, Kafka consumer and producer..."):
+        start_pipeline()
 
 st.markdown(f"""
 <style>
@@ -106,7 +138,7 @@ def live_section():
                         legend=alt.Legend(orient="top", title=None)),
         tooltip=["ts:T", "kind:N", "count:Q"],
     ).properties(height=260)
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
     # Alert feed and reasons
     left, right = st.columns([3, 2])
@@ -114,7 +146,7 @@ def live_section():
     with left:
         st.markdown("### Latest alerts")
         st.dataframe(alerts[["ts", "card", "amount", "score", "is_fraud"]].head(50),
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
     with right:
         st.markdown("### Why was it flagged?")
         if alerts.empty:
@@ -141,7 +173,7 @@ live_section()
 st.markdown("### Try it yourself")
 st.write("Pick a real card, change the purchase, and the model in the API scores it using that card's memory in Redis.")
 try:
-    r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+    r = redis_client()
     cards = sorted(k.removeprefix("card:") for k in r.scan_iter("card:*"))
 except redis.exceptions.ConnectionError:
     cards = []

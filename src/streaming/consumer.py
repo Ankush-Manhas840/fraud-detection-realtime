@@ -6,22 +6,18 @@ import json
 import time
 
 import pandas as pd
-import redis
 import requests
 from confluent_kafka import Consumer
 
+from src.connections import kafka_config, redis_client
 from src.monitoring.prediction_log import init_db, log_prediction
 from src.streaming.state import features_from_memory, update_memory, load_bag, save_bag
 
 
-def main():
+def main(group_id="fraud-checker", start_at="earliest"):
     # 1. connect to Redis, Kafka and the API
-    r = redis.Redis(host="localhost", port=6379, decode_responses=True)
-    consumer = Consumer({
-        "bootstrap.servers": "localhost:9092",
-        "group.id": "fraud-checker",
-        "auto.offset.reset": "earliest",
-    })
+    r = redis_client()
+    consumer = Consumer({**kafka_config(), "group.id": group_id, "auto.offset.reset": start_at})
     consumer.subscribe(["transactions"])
     session = requests.Session()
     db = init_db()
