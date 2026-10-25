@@ -57,6 +57,12 @@ def start_pipeline():
 if load_secrets() is not None:
     with st.spinner("Starting the pipeline: API, Kafka consumer and producer..."):
         start_pipeline()
+elif not DB_PATH.exists():
+    try:
+        sections = list(st.secrets.keys())
+    except Exception as error:
+        sections = f"could not read secrets: {type(error).__name__}"
+    st.warning(f"Cloud connection details not found, so the pipeline is not running. Secret sections seen: {sections}")
 
 st.markdown(f"""
 <style>
@@ -87,9 +93,11 @@ def load_predictions():
         with sqlite3.connect(DB_PATH) as conn:
             df = pd.read_sql("SELECT * FROM predictions", conn)
         source = "live database"
-    else:
+    elif SNAPSHOT_PATH.exists():
         df = pd.read_csv(SNAPSHOT_PATH)
         source = "saved snapshot of a clean run"
+    else:
+        return pd.DataFrame(columns=["ts", "card", "amount", "score", "flagged", "is_fraud", "latency_ms"]), "nothing yet"
     df["ts"] = pd.to_datetime(df["ts"])
     return df, source
 
