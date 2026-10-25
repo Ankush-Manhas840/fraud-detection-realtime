@@ -6,6 +6,8 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 <p align="center"><img src="docs/project-overview.svg" alt="Project overview: pipeline stages with status, progress by phase, and key findings so far" width="100%"></p>
 
+<p align="center"><img src="docs/img/demo.gif" alt="Live dashboard: purchases being checked, latest alerts with reasons, then Try it yourself: a normal purchase looks normal, the same purchase at a new shop, abroad, with 4 purchases in the last hour raises a fraud alert" width="100%"></p>
+
 **▶ Live demo: [fraud-check.streamlit.app](https://fraud-check.streamlit.app/)**: purchases flow through real cloud Kafka (Aiven) and Redis (Redis Cloud) into the model, one per second. Try your own purchase in *Try it yourself*.
 
 **Status (Oct 25):** the real-time system runs as separate services: a producer script sends purchases into Kafka, a consumer script loads each card's memory from Redis, builds the 9 features, calls the FastAPI model and saves the memory back. The consumer can stop and restart without losing card history or skipping purchases. Replaying 180,000 purchases from unseen customers caught 33 of 78 frauds, matching the offline results ([details](#live-pipeline-runs)). The API runs in its own Docker image, so `docker compose up -d` starts the API, Kafka and Redis together. Next: monitoring. The project moved from PaySim to IBM TabFormer after EDA showed PaySim's users never repeat and its balance columns leak the label ([why](#why-not-paysim)).
@@ -399,7 +401,7 @@ Strongest weights (scaled features): shopping at the card's usual hour pushes th
 - [x] Online deployment (Aiven Kafka, Redis Cloud, Streamlit Community Cloud)
 - [x] Feature tests, including live features matching training features
 - [x] CI: GitHub Actions runs pytest on every push
-- [ ] Final README, demo GIF
+- [x] Final README, demo GIF
 
 ### Skipped, with reasons
 - LightGBM, Isolation Forest: the XGBoost comparison already showed simpler generalises better on this data
