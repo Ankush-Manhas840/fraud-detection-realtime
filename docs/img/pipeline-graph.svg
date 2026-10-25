@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 820" width="1720" height="820" role="img" aria-label="Live pipeline as a node graph: producer to Kafka to consumer features with Redis memory, to the FastAPI model, to SQLite and the Streamlit dashboard">
+<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1f2633"/></pattern></defs>
+<style>
+text { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace; }
+.node { fill: #121722; stroke: #2a3242; stroke-width: 1.2; }
+.sep { stroke: #2a3242; }
+.title { fill: #f3f4f6; font-size: 15px; font-weight: 700; }
+.caption { fill: #8b95a5; font-size: 11px; }
+.row { fill: #c9d1d9; font-size: 13px; }
+.val { fill: #8b95a5; font-size: 12px; }
+.port { fill: #c9d1d9; font-size: 12.5px; }
+.tag { font-size: 10px; }
+.hint { fill: #6b7585; font-size: 11.5px; font-style: italic; }
+.accent { fill: #f59e0b; font-weight: 700; }
+.wire { fill: none; stroke-width: 2.2; }
+.head { fill: #f3f4f6; font-size: 18px; font-weight: 700; }
+.badge { fill: #34d399; font-size: 12px; }
+.legend { fill: #8b95a5; font-size: 12px; }
+</style>
+<rect width="1720" height="820" fill="#0b0f17"/>
+<rect width="1720" height="820" fill="url(#dots)"/>
+<rect width="1720" height="56" fill="#0e131c"/><line x1="0" y1="56" x2="1720" y2="56" stroke="#1f2633"/>
+<text x="40" y="35" class="head">fraud-detection-realtime <tspan fill="#8b95a5" font-weight="400">/ live pipeline</tspan></text>
+<rect x="1470" y="16" width="210" height="26" rx="6" fill="#0f2a22" stroke="#1f5a45"/>
+<text x="1575" y="34" class="badge" text-anchor="middle">running on Docker</text>
+<path d="M280,278 C320,278 300,296 340,296" stroke="#a78bfa" class="wire"/>
+<path d="M590,296 C630,296 620,190 660,190" stroke="#a78bfa" class="wire"/>
+<path d="M590,530 C630,530 620,214 660,214" stroke="#34d399" class="wire"/>
+<path d="M660,540 C600,540 650,554 590,554" stroke="#34d399" class="wire"/>
+<path d="M960,290 C1010.0,290 1010.0,290 1060,290" stroke="#f472b6" class="wire"/>
+<path d="M960,314 C1010.0,314 1010.0,314 1060,314" stroke="#f472b6" class="wire"/>
+<path d="M960,338 C1010.0,338 1010.0,338 1060,338" stroke="#f59e0b" class="wire"/>
+<path d="M960,362 C1010.0,362 1010.0,362 1060,362" stroke="#f59e0b" class="wire"/>
+<path d="M960,386 C1010.0,386 1010.0,386 1060,386" stroke="#f59e0b" class="wire"/>
+<path d="M960,410 C1010.0,410 1010.0,410 1060,410" stroke="#f472b6" class="wire"/>
+<path d="M960,434 C1010.0,434 1010.0,434 1060,434" stroke="#f472b6" class="wire"/>
+<path d="M960,458 C1010.0,458 1010.0,458 1060,458" stroke="#f472b6" class="wire"/>
+<path d="M960,482 C1010.0,482 1010.0,482 1060,482" stroke="#f472b6" class="wire"/>
+<path d="M1350,300 C1390.0,300 1390.0,250 1430,250" stroke="#f472b6" class="wire"/>
+<path d="M1350,330 C1390.0,330 1390.0,250 1430,250" stroke="#f59e0b" class="wire"/>
+<path d="M1555,330 L1555,410" stroke="#60a5fa" class="wire"/>
+<path d="M1430,560 C1330,560 1300,640 1205,592" stroke="#f472b6" class="wire" stroke-dasharray="6 6"/>
+<rect x="40" y="150" width="240" height="150" rx="10" class="node"/>
+<line x1="40" y1="190" x2="280" y2="190" class="sep"/>
+<text x="56" y="176" class="title">producer</text>
+<text x="280" y="142" class="caption" text-anchor="end">replay.py / producer.py</text>
+<text x="56" y="216" class="row">source</text>
+<text x="264" y="216" class="val" text-anchor="end">stream.csv.gz</text>
+<text x="56" y="238" class="row">rate</text>
+<text x="264" y="238" class="val" text-anchor="end">1 per second</text>
+<text x="56" y="260" class="row">purchases</text>
+<text x="264" y="260" class="val" text-anchor="end">50,000</text>
+<rect x="275" y="273" width="10" height="10" fill="#a78bfa" transform="rotate(45 280 278)"/>
+<text x="266" y="282" class="port" text-anchor="end"><tspan fill="#a78bfa" class="tag">json</tspan> purchase</text>
+<rect x="340" y="150" width="250" height="170" rx="10" class="node"/>
+<line x1="340" y1="190" x2="590" y2="190" class="sep"/>
+<text x="356" y="176" class="title">Kafka</text>
+<text x="590" y="142" class="caption" text-anchor="end">topic: transactions</text>
+<text x="356" y="216" class="row">append-only log</text>
+<text x="356" y="238" class="row">offsets per group</text>
+<text x="356" y="260" class="row">group</text>
+<text x="574" y="260" class="val" text-anchor="end">fraud-checker</text>
+<circle cx="340" cy="296" r="5.5" fill="#a78bfa"/>
+<rect x="585" y="291" width="10" height="10" fill="#a78bfa" transform="rotate(45 590 296)"/>
+<text x="576" y="300" class="port" text-anchor="end"><tspan fill="#a78bfa" class="tag">json</tspan> message</text>
+<rect x="340" y="470" width="250" height="240" rx="10" class="node"/>
+<line x1="340" y1="510" x2="590" y2="510" class="sep"/>
+<text x="356" y="496" class="title">Redis · card memory</text>
+<text x="590" y="462" class="caption" text-anchor="end">key: card:{user}-{card}</text>
+<text x="356" y="596" class="row">shops</text>
+<text x="574" y="596" class="val" text-anchor="end">set</text>
+<text x="356" y="618" class="row">shop_types</text>
+<text x="574" y="618" class="val" text-anchor="end">set</text>
+<text x="356" y="640" class="row">last_time</text>
+<text x="574" y="640" class="val" text-anchor="end">time</text>
+<text x="356" y="662" class="row">recent_times</text>
+<text x="574" y="662" class="val" text-anchor="end">list</text>
+<text x="356" y="684" class="row">total, count</text>
+<text x="574" y="684" class="val" text-anchor="end">numbers</text>
+<text x="356" y="706" class="row">hour_counts</text>
+<text x="574" y="706" class="val" text-anchor="end">dict</text>
+<rect x="585" y="525" width="10" height="10" fill="#34d399" transform="rotate(45 590 530)"/>
+<text x="576" y="534" class="port" text-anchor="end"><tspan fill="#34d399" class="tag">dict</tspan> load_bag</text>
+<circle cx="590" cy="554" r="5.5" fill="#34d399"/>
+<text x="576" y="558" class="port" text-anchor="end"><tspan fill="#34d399" class="tag">dict</tspan> save_bag</text>
+<rect x="660" y="110" width="300" height="460" rx="10" class="node"/>
+<line x1="660" y1="150" x2="960" y2="150" class="sep"/>
+<text x="676" y="136" class="title">features_from_memory()</text>
+<text x="960" y="102" class="caption" text-anchor="end">consumer.py</text>
+<circle cx="660" cy="190" r="5.5" fill="#a78bfa"/>
+<text x="674" y="194" class="port">purchase <tspan fill="#a78bfa" class="tag">json</tspan></text>
+<circle cx="660" cy="214" r="5.5" fill="#34d399"/>
+<text x="674" y="218" class="port">bag <tspan fill="#34d399" class="tag">dict</tspan></text>
+<text x="676" y="258" class="hint">9 features, built BEFORE memory is updated</text>
+<rect x="955" y="285" width="10" height="10" fill="#f472b6" transform="rotate(45 960 290)"/>
+<text x="946" y="294" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> amount</text>
+<rect x="955" y="309" width="10" height="10" fill="#f472b6" transform="rotate(45 960 314)"/>
+<text x="946" y="318" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> hour</text>
+<rect x="955" y="333" width="10" height="10" fill="#f59e0b" transform="rotate(45 960 338)"/>
+<text x="946" y="342" class="port" text-anchor="end"><tspan fill="#f59e0b" class="tag">boolean</tspan> outside_us</text>
+<rect x="955" y="357" width="10" height="10" fill="#f59e0b" transform="rotate(45 960 362)"/>
+<text x="946" y="366" class="port" text-anchor="end"><tspan fill="#f59e0b" class="tag">boolean</tspan> new_shop</text>
+<rect x="955" y="381" width="10" height="10" fill="#f59e0b" transform="rotate(45 960 386)"/>
+<text x="946" y="390" class="port" text-anchor="end"><tspan fill="#f59e0b" class="tag">boolean</tspan> new_shop_type</text>
+<rect x="955" y="405" width="10" height="10" fill="#f472b6" transform="rotate(45 960 410)"/>
+<text x="946" y="414" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> gap_minutes</text>
+<rect x="955" y="429" width="10" height="10" fill="#f472b6" transform="rotate(45 960 434)"/>
+<text x="946" y="438" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> count_last_hour</text>
+<rect x="955" y="453" width="10" height="10" fill="#f472b6" transform="rotate(45 960 458)"/>
+<text x="946" y="462" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> amount_vs_usual</text>
+<rect x="955" y="477" width="10" height="10" fill="#f472b6" transform="rotate(45 960 482)"/>
+<text x="946" y="486" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> share_same_hour</text>
+<rect x="655" y="535" width="10" height="10" fill="#34d399" transform="rotate(45 660 540)"/>
+<text x="674" y="544" class="port">updated bag <tspan fill="#34d399" class="tag">dict</tspan></text>
+<rect x="1060" y="110" width="290" height="480" rx="10" class="node"/>
+<line x1="1060" y1="150" x2="1350" y2="150" class="sep"/>
+<text x="1076" y="136" class="title">FastAPI · POST /predict</text>
+<text x="1350" y="102" class="caption" text-anchor="end">Docker: fraud-api</text>
+<circle cx="1060" cy="290" r="5.5" fill="#f472b6"/>
+<text x="1074" y="294" class="port">amount <tspan fill="#f472b6" class="tag">number</tspan></text>
+<circle cx="1060" cy="314" r="5.5" fill="#f472b6"/>
+<text x="1074" y="318" class="port">hour <tspan fill="#f472b6" class="tag">number</tspan></text>
+<circle cx="1060" cy="338" r="5.5" fill="#f59e0b"/>
+<text x="1074" y="342" class="port">outside_us <tspan fill="#f59e0b" class="tag">boolean</tspan></text>
+<circle cx="1060" cy="362" r="5.5" fill="#f59e0b"/>
+<text x="1074" y="366" class="port">new_shop <tspan fill="#f59e0b" class="tag">boolean</tspan></text>
+<circle cx="1060" cy="386" r="5.5" fill="#f59e0b"/>
+<text x="1074" y="390" class="port">new_shop_type <tspan fill="#f59e0b" class="tag">boolean</tspan></text>
+<circle cx="1060" cy="410" r="5.5" fill="#f472b6"/>
+<text x="1074" y="414" class="port">gap_minutes <tspan fill="#f472b6" class="tag">number</tspan></text>
+<circle cx="1060" cy="434" r="5.5" fill="#f472b6"/>
+<text x="1074" y="438" class="port">count_last_hour <tspan fill="#f472b6" class="tag">number</tspan></text>
+<circle cx="1060" cy="458" r="5.5" fill="#f472b6"/>
+<text x="1074" y="462" class="port">amount_vs_usual <tspan fill="#f472b6" class="tag">number</tspan></text>
+<circle cx="1060" cy="482" r="5.5" fill="#f472b6"/>
+<text x="1074" y="486" class="port">share_same_hour <tspan fill="#f472b6" class="tag">number</tspan></text>
+<rect x="1345" y="295" width="10" height="10" fill="#f472b6" transform="rotate(45 1350 300)"/>
+<text x="1336" y="304" class="port" text-anchor="end"><tspan fill="#f472b6" class="tag">number</tspan> fraud_score</text>
+<rect x="1345" y="325" width="10" height="10" fill="#f59e0b" transform="rotate(45 1350 330)"/>
+<text x="1336" y="334" class="port" text-anchor="end"><tspan fill="#f59e0b" class="tag">boolean</tspan> is_fraud</text>
+<text x="1076" y="160" class="row">StandardScaler</text>
+<text x="1076" y="184" class="row">→ LogisticRegression</text>
+<text x="1076" y="208" class="row">alert when score ≥ <tspan class="accent">0.9862</tspan></text>
+<text x="1076" y="232" class="hint">about 10 ms per purchase</text>
+<text x="1076" y="565" class="hint">model.joblib · class_weight balanced</text>
+<rect x="1430" y="170" width="250" height="160" rx="10" class="node"/>
+<line x1="1430" y1="210" x2="1680" y2="210" class="sep"/>
+<text x="1446" y="196" class="title">SQLite · predictions</text>
+<text x="1680" y="162" class="caption" text-anchor="end">prediction_log.py</text>
+<text x="1446" y="236" class="row">ts, card, amount</text>
+<text x="1446" y="258" class="row">score, flagged</text>
+<text x="1446" y="280" class="row">is_fraud, latency_ms</text>
+<circle cx="1430" cy="250" r="5.5" fill="#f472b6"/>
+<circle cx="1555" cy="330" r="5.5" fill="#60a5fa"/>
+<rect x="1430" y="410" width="250" height="190" rx="10" class="node"/>
+<line x1="1430" y1="450" x2="1680" y2="450" class="sep"/>
+<text x="1446" y="436" class="title">Streamlit dashboard</text>
+<text x="1680" y="402" class="caption" text-anchor="end">dashboard/app.py</text>
+<text x="1446" y="476" class="row">live alerts</text>
+<text x="1664" y="476" class="val" text-anchor="end">every 3 s</text>
+<text x="1446" y="498" class="row">why flagged?</text>
+<text x="1446" y="520" class="row">hourly chart</text>
+<text x="1446" y="542" class="row">try it yourself</text>
+<text x="1664" y="542" class="val" text-anchor="end">→ API</text>
+<circle cx="1555" cy="410" r="5.5" fill="#60a5fa"/>
+<circle cx="1430" cy="560" r="5.5" fill="#f472b6"/>
+<rect x="40" y="748" width="1640" height="44" rx="22" fill="#0e131c" stroke="#232b38"/>
+<text x="68" y="775" class="legend">WIRE TYPES:</text>
+<circle cx="190" cy="770" r="5.5" fill="#a78bfa"/><text x="202" y="775" class="legend">json</text><circle cx="320" cy="770" r="5.5" fill="#34d399"/><text x="332" y="775" class="legend">dict</text><circle cx="450" cy="770" r="5.5" fill="#f472b6"/><text x="462" y="775" class="legend">number</text><circle cx="580" cy="770" r="5.5" fill="#f59e0b"/><text x="592" y="775" class="legend">boolean</text><circle cx="710" cy="770" r="5.5" fill="#60a5fa"/><text x="722" y="775" class="legend">text</text>
+<text x="1660" y="775" class="legend" text-anchor="end">dashed = "try it yourself" sends a what-if purchase to the API</text>
+</svg>

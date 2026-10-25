@@ -14,6 +14,12 @@ A small local version of a payment-company fraud pipeline: stream transactions, 
 
 A producer replays purchases in time order into a Kafka topic. A consumer keeps each card's recent history in Redis, builds the 9 features for each new purchase, and sends them to the FastAPI `/predict` endpoint, which loads the saved model and returns a score and a decision. Every prediction is logged to SQLite for drift checks (Evidently) and shown on a Streamlit dashboard.
 
+### How data flows, step by step
+
+<p align="center"><img src="docs/img/pipeline-graph.svg" alt="Node graph of the live pipeline: producer sends a purchase into Kafka; the consumer loads the card's memory from Redis and builds 9 typed features; FastAPI scores them and returns fraud_score and is_fraud; results go to SQLite and the Streamlit dashboard" width="100%"></p>
+
+Each box is one part of the system; each coloured wire is one value passing between them, coloured by its type. The 9 wires in the middle are the exact features the model receives for every purchase.
+
 ## Tech stack
 
 | Area | Tool | Status |
