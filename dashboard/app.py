@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))   # so `src` can be imported when Streamlit runs t
 import altair as alt
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 import redis
 import requests
 
@@ -24,8 +25,8 @@ from src.streaming.state import load_bag
 DB_PATH = ROOT / "predictions.db"
 SNAPSHOT_PATH = Path(__file__).resolve().parent / "snapshot.csv"
 
-ORANGE, BLACK, GREEN, BROWN, CREAM = "#E8A13A", "#1a1a1a", "#4A6B3A", "#7A4A2A", "#F2E6CF"
-BROWN_LIGHT = "#C27A45"
+PINK, INK, YELLOW, CYAN, PAPER, RED = "#E8487F", "#0A080C", "#F8D23C", "#56CDEE", "#F6EEDB", "#E2383C"
+HERO_HTML = Path(__file__).resolve().parent / "hero.html"
 
 st.set_page_config(page_title="Fraud Monitor", page_icon="🌲", layout="wide")
 
@@ -66,22 +67,23 @@ elif not DB_PATH.exists():
 
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@700&display=swap');
-.title {{ font-family: Oswald, sans-serif; font-weight: 700; font-size: 4.2rem !important; line-height: 1;
-          letter-spacing: -0.01em; color: {ORANGE}; margin: 0; }}
-.title span {{ font-family: 'Noto Sans JP', sans-serif; }}
-.subtitle {{ color: {CREAM}; opacity: .75; margin: .4rem 0 1.6rem; }}
-.hero {{ position: relative; border: 3px solid {BLACK}; border-radius: 4px; padding: 2rem 2.4rem;
-         background: repeating-linear-gradient(to bottom, {ORANGE} 0 9px, {BLACK} 9px 11px); color: {BLACK}; }}
-.hero .inner {{ background: {ORANGE}; display: inline-block; padding: .4rem 1rem; }}
-.hero .num {{ font-family: Oswald, sans-serif; font-size: 5rem; font-weight: 700; line-height: 1; }}
-.hero .vert {{ position: absolute; right: 1.6rem; top: 1.2rem; writing-mode: vertical-rl;
-               font-family: 'Noto Sans JP', sans-serif; font-size: 2.4rem; background: {ORANGE}; }}
-.card {{ border: 2px solid #3a3530; border-radius: 4px; padding: 1rem 1.2rem; background: #242220;
-         background-image: radial-gradient(#ffffff10 1px, transparent 1px); background-size: 6px 6px; }}
-.card .k {{ font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }}
-.card .v {{ font-family: Oswald, sans-serif; font-size: 2.4rem; color: {ORANGE}; }}
-h3 {{ font-family: Oswald, sans-serif !important; color: {ORANGE} !important; letter-spacing: .02em; }}
+@import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Space+Grotesk:wght@400;500;700&display=swap');
+.stApp {{ background-color: #1a1226; background-image: radial-gradient(rgba(255,255,255,.06) 1.2px, transparent 1.5px); background-size: 9px 9px; }}
+html, body, .stApp, .stMarkdown, p, li, label {{ font-family: 'Space Grotesk', sans-serif; }}
+h3 {{ font-family: 'Dela Gothic One', sans-serif !important; font-weight: 400 !important; color: {PAPER} !important;
+     display: inline-block; background: {INK}; padding: .2rem 1rem .35rem !important; transform: rotate(-1.2deg);
+     box-shadow: 5px 5px 0 {YELLOW}; margin: 1.6rem 0 1rem !important; }}
+.card {{ border: 4px solid {INK}; padding: 1rem 1.2rem; background: #221b2c; color: {PAPER}; box-shadow: 7px 7px 0 {PINK};
+         background-image: radial-gradient(rgba(86,205,238,.14) 1.2px, transparent 1.5px); background-size: 8px 8px; }}
+.card .k {{ font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: {CYAN}; font-weight: 700; }}
+.card .v {{ font-family: 'Dela Gothic One', sans-serif; font-size: 2.3rem; line-height: 1.15; color: {YELLOW};
+            -webkit-text-stroke: 1px {INK}; }}
+[data-testid="stDataFrame"] {{ border: 4px solid {INK}; box-shadow: 7px 7px 0 {CYAN}; }}
+.stButton > button {{ background: {YELLOW} !important; color: {INK} !important; border: 3px solid {INK} !important; border-radius: 0 !important;
+                      font-weight: 700 !important; box-shadow: 5px 5px 0 {PINK}; transition: transform .08s ease-out, box-shadow .08s ease-out; }}
+.stButton > button:hover {{ transform: translate(-2px,-2px); box-shadow: 7px 7px 0 {PINK}; }}
+.stButton > button:active {{ transform: translate(4px,4px); box-shadow: 1px 1px 0 {PINK}; }}
+.foot {{ color: #b9adc2; font-size: .85rem; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -102,17 +104,8 @@ def load_predictions():
     return df, source
 
 
-st.markdown('<div class="title">FRAUD <span>詐欺</span></div>', unsafe_allow_html=True)
-st.markdown(f'<p class="subtitle">Real-time card fraud detection · Kafka → Redis → FastAPI → SQLite · live pipeline</p>',
-            unsafe_allow_html=True)
-
-# Hero: the offline result on people the model never saw
-st.markdown("""
-<div class="hero"><div class="vert">監視</div>
-  <div class="inner"><div class="num">177</div>
-  <b>frauds caught in the top 1,000 alerts</b><br>on 253 people the model never saw · random guessing catches about 1</div>
-</div>""", unsafe_allow_html=True)
-st.write("")
+# Hero: comic panel with the fraud kaiju (same drawing as the portfolio), the title and the headline result
+components.html(HERO_HTML.read_text(encoding="utf-8"), height=430)
 
 @st.fragment(run_every=3)
 def live_section():
@@ -142,7 +135,7 @@ def live_section():
     chart = alt.Chart(long).mark_bar().encode(
         x=alt.X("ts:T", title=None),
         y=alt.Y("count:Q", stack=True, title=None),
-        color=alt.Color("kind:N", scale=alt.Scale(domain=["ok", "alerts"], range=[GREEN, ORANGE]),
+        color=alt.Color("kind:N", scale=alt.Scale(domain=["ok", "alerts"], range=[CYAN, PINK]),
                         legend=alt.Legend(orient="top", title=None)),
         tooltip=["ts:T", "kind:N", "count:Q"],
     ).properties(height=260)
@@ -218,11 +211,11 @@ else:
             try:
                 answer = requests.post("http://127.0.0.1:8000/predict", json=features, timeout=5).json()
                 if answer["is_fraud"]:
-                    verdict, colour = "FRAUD ALERT", ORANGE
+                    verdict, colour = "FRAUD ALERT", RED
                 elif answer["fraud_score"] > 0.5:
-                    verdict, colour = "Suspicious", BROWN_LIGHT
+                    verdict, colour = "Suspicious", YELLOW
                 else:
-                    verdict, colour = "Looks normal", GREEN
+                    verdict, colour = "Looks normal", CYAN
                 st.markdown(f"""<div class="card"><div class="k">Model says</div>
                     <div class="v" style="color:{colour}">{verdict}</div>
                     fraud score {answer["fraud_score"]:.4f} · alerts start at 0.9862</div>""", unsafe_allow_html=True)
